@@ -1,0 +1,37 @@
+name: GitHub Actions Demo
+run-name: Lint and Test
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  lint_and_test:
+    runs-on: ubuntu-latest
+    environment: development
+    env:
+      CODERBYTE_API_URL: ${{ secrets.CODERBYTE_API_URL }}
+      CODERBYTE_API_KEY: ${{ secrets.CODERBYTE_API_KEY }}
+      SMTP_LOGIN: ${{ secrets.SMTP_LOGIN }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+      HEDERA_TOPIC: ${{ secrets.HEDERA_TOPIC }}
+      HEDERA_ACCOUNT_ID: ${{ secrets.HEDERA_ACCOUNT_ID }}
+      HEDERA_PUBLIC_KEY: ${{ secrets.HEDERA_PUBLIC_KEY }}
+      HEDERA_PRIVATE_KEY: ${{ secrets.HEDERA_PRIVATE_KEY }}
+      S3_CERT_BUCKET_NAME: ${{ secrets.S3_CERT_BUCKET_NAME }}
+      S3_METADATA_BUCKET_NAME: ${{ secrets.S3_METADATA_BUCKET_NAME }}
+      TOKEN_ID: ${{ secrets.TOKEN_ID }}
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8.6.11
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.1.0
+      - run: pnpm install
+      - run: npx prisma generate
+      - run: pnpm lint
+      - run: pnpm build
+      - run: pnpm test:cov

@@ -1,0 +1,11 @@
+.husky
+docker/Dockerfile
+node_modules/
+deploy/
+script/
+.env
+.env.example
+docker-compose*.yml
+.dockerignore
+.git*
+README.md

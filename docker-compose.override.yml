@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  backend:
+    ports:
+      - 3000:3000
+    pull_policy: always
+    tty: true
+    env_file: .env
+    environment:
+      - DEV=true
+    volumes:
+      - ./src:/app/src
+      - ./dist:/dist
+
+  backend_db:
+    volumes:
+      - db:/var/lib/postgresql/data
+    ports:
+      - '6432:5432'
+
+volumes:
+  db:

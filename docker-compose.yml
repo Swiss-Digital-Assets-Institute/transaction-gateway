@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  backend:
+    build:
+      context: .
+      target: backend
+      dockerfile: docker/Dockerfile
+    image: ${DOCKER_IMAGE:-hash-certification-backend}:${IMAGE_TAG:-latest}
+    depends_on:
+      - backend_db
+      - backends3
+
+  backend_db:
+    image: postgres:15.3-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
