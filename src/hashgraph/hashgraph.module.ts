@@ -11,7 +11,7 @@ import { HashgraphService } from './hashgraph.service';
       provide: Client, // This will make Client injectable
       useFactory: (configService: ConfigService) => {
         let client: Client;
-        switch (configService.get<string>('HEDERA_NETWORK')) {
+        switch (configService.get<string>('HASHGRAPH_NETWORK')) {
           case 'mainnet':
             client = Client.forMainnet();
             break;
@@ -25,8 +25,8 @@ import { HashgraphService } from './hashgraph.service';
             client = Client.forTestnet();
         }
         client.setOperator(
-          configService.get<string>('HEDERA_ACCOUNT_ID'),
-          configService.get<string>('HEDERA_PRIVATE_KEY'),
+          configService.get<string>('HASHGRAPH_ACCOUNT_ID'),
+          configService.get<string>('HASHGRAPH_PRIVATE_KEY'),
         );
         return client;
       },
@@ -35,32 +35,25 @@ import { HashgraphService } from './hashgraph.service';
     {
       provide: AccountId,
       useFactory: (configService: ConfigService) => {
-        return AccountId.fromString(configService.get<string>('HEDERA_ACCOUNT_ID'));
+        return AccountId.fromString(configService.get<string>('HASHGRAPH_ACCOUNT_ID'));
       },
       inject: [ConfigService],
     },
     {
       provide: PublicKey,
       useFactory: (configService: ConfigService) => {
-        return PublicKey.fromStringECDSA(configService.get<string>('HEDERA_PUBLIC_KEY'));
+        return PublicKey.fromStringECDSA(configService.get<string>('HASHGRAPH_PUBLIC_KEY'));
       },
       inject: [ConfigService],
     },
     {
       provide: PrivateKey,
       useFactory: (configService: ConfigService) => {
-        return PrivateKey.fromString(configService.get<string>('HEDERA_PRIVATE_KEY'));
-      },
-      inject: [ConfigService],
-    },
-    {
-      provide: TokenId,
-      useFactory: (configService: ConfigService) => {
-        return TokenId.fromString(configService.get<string>('TOKEN_ID'));
+        return PrivateKey.fromString(configService.get<string>('HASHGRAPH_PRIVATE_KEY'));
       },
       inject: [ConfigService],
     },
   ],
-  exports: [HashgraphService, Client, PublicKey, PrivateKey, TokenId, AccountId], // Ensure Client is exported if it's needed elsewhere
+  exports: [HashgraphService, Client, PublicKey, PrivateKey, AccountId], // Ensure Client is exported if it's needed elsewhere
 })
 export class HashgraphModule {}

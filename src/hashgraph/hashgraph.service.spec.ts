@@ -6,18 +6,11 @@ import {
   AccountId,
   Client,
   PrivateKey,
-  TokenId,
-  TokenMintTransaction,
-  TokenNftInfo,
-  TokenNftInfoQuery,
-  TokenWipeTransaction,
   TopicCreateTransaction,
   TopicId,
   TopicMessageSubmitTransaction,
   Transaction,
-  TransactionReceipt,
   TransactionResponse,
-  TransferTransaction,
 } from '@hashgraph/sdk';
 import { mockDeep } from 'jest-mock-extended';
 import axios from 'axios';
@@ -35,7 +28,7 @@ describe('HashgraphService', () => {
   const client = mockDeep<Client>();
   const configServiceMock = {
     get: (key: string) => {
-      if (key === 'HEDERA_MIRROR_NODE_URL') return '';
+      if (key === 'HASHGRAPH_MIRROR_NODE_URL') return '';
       return {};
     },
   };
@@ -197,107 +190,6 @@ describe('HashgraphService', () => {
     expect(resultTxId).toBe(txId);
   });
 
-  it('mintNft method should compose correct TokenMintTransaction and execute it', async () => {
-    const tokenId = {};
-    const url = 'https://url.com';
-    const serialNumber = 1;
-    const receiptMock = { serials: [{ low: serialNumber }] };
-    service.executeTransaction = jest.fn(async () => {
-      return receiptMock as unknown as TransactionReceipt;
-    });
-    const freezeWithStub = jest.fn();
-    const setMaxTransactionFeeStub = jest.fn(() => {
-      return { freezeWith: freezeWithStub };
-    });
-    const setMetadataStub = jest.fn(() => {
-      return { setMaxTransactionFee: setMaxTransactionFeeStub };
-    });
-    const setTokenIdSpy = jest.spyOn(TokenMintTransaction.prototype, 'setTokenId').mockImplementation(() => {
-      return { setMetadata: setMetadataStub } as unknown as TokenMintTransaction;
-    });
-
-    const resultSerialNumber = await service.mintNft(url);
-    expect(setTokenIdSpy).toHaveBeenCalledWith(tokenId);
-    expect(setMetadataStub).toHaveBeenCalledWith([Buffer.from(url)]);
-    expect(setMaxTransactionFeeStub).toHaveBeenCalled();
-    expect(freezeWithStub).toHaveBeenCalledWith(client);
-    expect(service.executeTransaction).toHaveBeenCalled();
-    expect(resultSerialNumber).toBe(serialNumber);
-  });
-
-  it('wipeNft method should compose correct TokenWipeTransaction and execute it', async () => {
-    const tokenId = {};
-    const accountId = {};
-    const serialNumber = 1;
-    const nftInfoMock = [{ accountId }];
-    const receiptMock = { serials: [{ low: serialNumber }] };
-    service.executeTransaction = jest.fn(async () => {
-      return receiptMock as unknown as TransactionReceipt;
-    });
-    service.queryNftInfo = jest.fn(async () => {
-      return nftInfoMock as unknown as TokenNftInfo[];
-    });
-    const freezeWithStub = jest.fn();
-    const setSerialsStub = jest.fn(() => {
-      return { freezeWith: freezeWithStub };
-    });
-    const setTokenIdStub = jest.fn(() => {
-      return { setSerials: setSerialsStub };
-    });
-    const setAccountIdSpy = jest.spyOn(TokenWipeTransaction.prototype, 'setAccountId').mockImplementation(() => {
-      return { setTokenId: setTokenIdStub } as unknown as TokenWipeTransaction;
-    });
-
-    const resultReceipt = await service.wipeNft(serialNumber);
-    expect(setAccountIdSpy).toHaveBeenCalledWith(accountId);
-    expect(setTokenIdStub).toHaveBeenCalledWith(tokenId);
-    expect(freezeWithStub).toHaveBeenCalledWith(client);
-    expect(service.executeTransaction).toHaveBeenCalled();
-    expect(resultReceipt).toBe(receiptMock);
-  });
-
-  it('transferNft method should compose correct TransferTransaction and execute it', async () => {
-    const accountIdMock = '0.0.1';
-    const tokenId = {};
-    const accountId = {};
-    const receiverAccountId = { receiverAccId: 'receiverAccId' };
-    const serialNumber = 1;
-    const receiptMock = { serials: [{ low: serialNumber }] };
-    service.executeTransaction = jest.fn(async () => {
-      return receiptMock as unknown as TransactionReceipt;
-    });
-    const accountIdSpy = jest.spyOn(AccountId, 'fromString').mockImplementation(() => {
-      return receiverAccountId as unknown as AccountId;
-    });
-    const freezeWithStub = jest.fn();
-    const addNftTransferSpy = jest.spyOn(TransferTransaction.prototype, 'addNftTransfer').mockImplementation(() => {
-      return { freezeWith: freezeWithStub } as unknown as TransferTransaction;
-    });
-
-    const resultReceipt = await service.transferNft(serialNumber, accountIdMock);
-    expect(accountIdSpy).toHaveBeenCalledWith(accountIdMock);
-    expect(addNftTransferSpy).toHaveBeenCalledWith(tokenId, serialNumber, accountId, receiverAccountId);
-    expect(freezeWithStub).toHaveBeenCalledWith(client);
-    expect(service.executeTransaction).toHaveBeenCalled();
-    expect(resultReceipt).toBe(receiptMock);
-  });
-
-  it('queryNftInfo method should compose correct TokenNftInfoQuery and execute it', async () => {
-    const serialNumber = 1;
-    const queryResponseMock = [{ serial: serialNumber }];
-    const executeStub = jest.fn(async () => {
-      return queryResponseMock as unknown as TokenNftInfo[];
-    });
-    const setNftIdSpy = jest.spyOn(TokenNftInfoQuery.prototype, 'setNftId').mockImplementation(() => {
-      return { execute: executeStub } as unknown as TokenNftInfoQuery;
-    });
-
-    const queryResponse = await service.queryNftInfo(serialNumber);
-    expect(setNftIdSpy).toHaveBeenCalled();
-    expect(executeStub).toHaveBeenCalledWith(client);
-    expect(queryResponse).toBe(queryResponseMock);
-  });
-
   it('executeTransaction method should sign passed Transaction and execute it', async () => {
     const receiptMock = { receiptData: 'receiptData' };
     const getReceiptStub = jest.fn(() => {
@@ -408,7 +300,6 @@ describe('HashgraphService', () => {
     const serviceInstance = new HashgraphService(
       { get: jest.fn().mockReturnValue('0.0.1') } as unknown as ConfigService,
       {} as NodeClient,
-      {} as TokenId,
       {} as PrivateKey,
       {} as AccountId,
     );

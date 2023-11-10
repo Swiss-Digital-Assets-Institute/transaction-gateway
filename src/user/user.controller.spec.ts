@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ApiKeyGuard } from '../auth/api-key/api-key.guard';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,10 +18,7 @@ describe('UserController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
       providers: [{ provide: UserService, useValue: userServiceMock }],
-    })
-      .overrideGuard(ApiKeyGuard)
-      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
-      .compile();
+    }).compile();
 
     controller = module.get<UserController>(UserController);
   });
@@ -36,7 +32,6 @@ describe('UserController', () => {
     const updateSpy = jest.spyOn(userServiceMock, 'update');
     const removeSpy = jest.spyOn(userServiceMock, 'remove');
     const findOneSpy = jest.spyOn(userServiceMock, 'findOne');
-    const findOneByOneTimeCodeSpy = jest.spyOn(userServiceMock, 'findOneByOneTimeCode');
     const findAllSpy = jest.spyOn(userServiceMock, 'findAll');
 
     const createInput: CreateUserDto = {
@@ -45,7 +40,6 @@ describe('UserController', () => {
       LastName: 'Doe',
     };
     const idInput = 1;
-    const oneTimeCodeInputMock = '123';
 
     await controller.create(createInput);
     expect(createSpy).toHaveBeenCalledWith(createInput);
@@ -57,12 +51,7 @@ describe('UserController', () => {
     expect(findOneSpy).toHaveBeenCalledWith(idInput);
     findOneSpy.mockReset();
     await controller.findOneWithRelations(idInput);
-    expect(findOneSpy).toHaveBeenCalledWith(idInput, {
-      Company: true,
-      UserCertification: { include: { Certification: true } },
-    });
-    await controller.findOneByOneTimeCode(oneTimeCodeInputMock);
-    expect(findOneByOneTimeCodeSpy).toHaveBeenCalledWith(oneTimeCodeInputMock);
+    expect(findOneSpy).toHaveBeenCalledWith(idInput);
     await controller.findAll();
     expect(findAllSpy).toHaveBeenCalled();
   });

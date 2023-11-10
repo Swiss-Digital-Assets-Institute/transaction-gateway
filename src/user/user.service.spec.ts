@@ -96,28 +96,8 @@ describe('UserService', () => {
     });
     const result = await service.findOne(userIdMock);
     expect(findUniqueMock).toHaveBeenCalledWith({
-      include: null,
       where: {
         UserId: userIdMock,
-      },
-    });
-    expect(result).toBe(userRecordMock);
-  });
-
-  it('findOneByOneTimeCode method should call findUnique on prisma and return user', async () => {
-    const userNameMock = 'Company';
-    const oneTimeCodeMock = '123';
-    const userRecordMock = { Name: userNameMock };
-    userCertificationMock.findUnique.mockImplementation(() => {
-      return { User: userRecordMock };
-    });
-    const result = await service.findOneByOneTimeCode(oneTimeCodeMock);
-    expect(userCertificationMock.findUnique).toHaveBeenCalledWith({
-      where: {
-        OneTimeCode: oneTimeCodeMock,
-      },
-      include: {
-        User: true,
       },
     });
     expect(result).toBe(userRecordMock);
@@ -135,10 +115,10 @@ describe('UserService', () => {
   });
 
   it('findMany method should call corresponding method of prisma', async () => {
-    const whereMock = { CompanyId: 1 };
+    const whereMock = { Email: 'email@mo.ck' };
     findManyMock.mockReset();
     await service.findMany(whereMock);
-    expect(findManyMock).toHaveBeenCalledWith({ where: whereMock, include: null });
+    expect(findManyMock).toHaveBeenCalledWith({ where: whereMock });
   });
 
   it('createMany method should call corresponding method of prisma', async () => {

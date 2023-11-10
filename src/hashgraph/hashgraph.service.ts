@@ -1,14 +1,7 @@
 import {
   AccountId,
-  Hbar,
-  NftId,
   PrivateKey,
-  TokenId,
-  TokenMintTransaction,
-  TokenNftInfoQuery,
-  TokenWipeTransaction,
   Transaction,
-  TransferTransaction,
   Client,
   TopicCreateTransaction,
   TopicId,
@@ -29,7 +22,6 @@ export class HashgraphService {
   constructor(
     private readonly configService: ConfigService,
     private readonly client: Client,
-    private readonly tokenId: TokenId,
     private readonly privateKey: PrivateKey,
     private readonly accountId: AccountId,
   ) {}
@@ -70,7 +62,7 @@ export class HashgraphService {
     try {
       // Get message with sequence number from mirrornode
       const message = await axios.get(
-        `${this.configService.get<string>('HEDERA_MIRROR_NODE_URL')}/api/v1/topics/${
+        `${this.configService.get<string>('HASHGRAPH_MIRROR_NODE_URL')}/api/v1/topics/${
           this.topicId
         }/messages/${sequenceNumber}`,
         {},
@@ -87,7 +79,7 @@ export class HashgraphService {
       // Search transaction with this consensus timestamp
       const transaction = await axios.get(
         `${this.configService.get<string>(
-          'HEDERA_MIRROR_NODE_URL',
+          'HASHGRAPH_MIRROR_NODE_URL',
         )}/api/v1/transactions?limit=2&order=asc&timestamp=${consensus_timestamp}&transactiontype=CONSENSUSSUBMITMESSAGE`,
         {},
       );
@@ -107,46 +99,6 @@ export class HashgraphService {
 
     this.logger.debug(transactionId);
     return transactionId;
-  }
-  //async retrieveMessageFromTopic() {}
-
-  async mintNft(url: string): Promise<number> {
-    const maxTransactionFee = new Hbar(20);
-
-    const mintTx = new TokenMintTransaction()
-      .setTokenId(this.tokenId)
-      .setMetadata([Buffer.from(url)])
-      .setMaxTransactionFee(maxTransactionFee)
-      .freezeWith(this.client);
-
-    const mintRx = await this.executeTransaction(mintTx);
-    return mintRx.serials[0].low;
-  }
-
-  async wipeNft(serial: number) {
-    const [nftInfo] = await this.queryNftInfo(serial);
-
-    const transaction = new TokenWipeTransaction()
-      .setAccountId(nftInfo.accountId)
-      .setTokenId(this.tokenId)
-      .setSerials([serial])
-      .freezeWith(this.client);
-
-    return this.executeTransaction(transaction);
-  }
-
-  async transferNft(serial: number, accountId: string): Promise<TransactionReceipt> {
-    const receiverAccountId = AccountId.fromString(accountId);
-
-    const tokenTransferTx = new TransferTransaction()
-      .addNftTransfer(this.tokenId, serial, this.accountId, receiverAccountId)
-      .freezeWith(this.client);
-
-    return this.executeTransaction(tokenTransferTx);
-  }
-
-  async queryNftInfo(serial: number) {
-    return new TokenNftInfoQuery().setNftId(new NftId(this.tokenId, serial)).execute(this.client);
   }
 
   async executeTransaction(transaction: Transaction) {

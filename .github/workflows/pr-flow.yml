@@ -13,10 +13,10 @@ jobs:
       SMTP_LOGIN: ${{ secrets.SMTP_LOGIN }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-      HEDERA_TOPIC: ${{ secrets.HEDERA_TOPIC }}
-      HEDERA_ACCOUNT_ID: ${{ secrets.HEDERA_ACCOUNT_ID }}
-      HEDERA_PUBLIC_KEY: ${{ secrets.HEDERA_PUBLIC_KEY }}
-      HEDERA_PRIVATE_KEY: ${{ secrets.HEDERA_PRIVATE_KEY }}
+      HASHGRAPH_TOPIC: ${{ secrets.HASHGRAPH_TOPIC }}
+      HASHGRAPH_ACCOUNT_ID: ${{ secrets.HASHGRAPH_ACCOUNT_ID }}
+      HASHGRAPH_PUBLIC_KEY: ${{ secrets.HASHGRAPH_PUBLIC_KEY }}
+      HASHGRAPH_PRIVATE_KEY: ${{ secrets.HASHGRAPH_PRIVATE_KEY }}
       S3_CERT_BUCKET_NAME: ${{ secrets.S3_CERT_BUCKET_NAME }}
       S3_METADATA_BUCKET_NAME: ${{ secrets.S3_METADATA_BUCKET_NAME }}
       TOKEN_ID: ${{ secrets.TOKEN_ID }}

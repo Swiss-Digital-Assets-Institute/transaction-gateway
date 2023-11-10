@@ -5,13 +5,28 @@ services:
       context: .
       target: backend
       dockerfile: docker/Dockerfile
-    image: ${DOCKER_IMAGE:-hash-certification-backend}:${IMAGE_TAG:-latest}
     depends_on:
       - backend_db
-      - backends3
+      - vault
 
   backend_db:
     image: postgres:15.3-alpine
+    ports:
+      - '5432:5432'
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+
+  vault:
+    image: hashicorp/vault:latest
+    build:
+      dockerfile: ./docker/Dockerfile.vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN}
+    ports:
+      - 8200:8200
+    volumes:
+      - ./docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
+      - ./app-policy.vault.hcl:/app-policy.vault.hcl
+    privileged: true
+    entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']

@@ -20,20 +20,12 @@ export class UserService {
     return this.prisma.user.findMany();
   }
 
-  findOne(id: number, include: Prisma.UserInclude = null) {
-    return this.prisma.user.findUnique({ where: { UserId: id }, include });
+  findOne(id: number) {
+    return this.prisma.user.findUnique({ where: { UserId: id } });
   }
 
-  async findMany(where: Prisma.UserWhereInput, include: Prisma.UserInclude = null) {
-    return this.prisma.user.findMany({ where, include });
-  }
-
-  async findOneByOneTimeCode(oneTimeCode: string) {
-    const userCertification = await this.prisma.userCertification.findUnique({
-      where: { OneTimeCode: oneTimeCode },
-      include: { User: true },
-    });
-    return userCertification?.User;
+  async findMany(where: Prisma.UserWhereInput) {
+    return this.prisma.user.findMany({ where });
   }
 
   update(UserId: number, updateUserDto: UpdateUserDto) {

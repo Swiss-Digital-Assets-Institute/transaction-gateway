@@ -7,12 +7,14 @@ import { AppService } from './app.service';
 import { PrismaService } from './prisma/prisma.service';
 import { UserModule } from './user/user.module';
 import { HashgraphModule } from './hashgraph/hashgraph.module';
+import { VaultManagerModule } from './vault-manager/vault-manager.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     UserModule,
     HashgraphModule,
+    VaultManagerModule,
     MailerModule.forRoot({
       transport: `smtps://${process.env.SMTP_LOGIN}:${process.env.SMTP_PASSWORD}@${process.env.SMTP_SERVER}`,
       defaults: {
