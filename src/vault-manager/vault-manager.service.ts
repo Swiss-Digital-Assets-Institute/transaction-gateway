@@ -1,8 +1,9 @@
-import { Injectable, OnModuleInit, Logger, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import Vault from 'hashi-vault-js';
 import { ConfigService } from '@nestjs/config';
-import { PrivateKey, PublicKey } from '@hashgraph/sdk';
-import { SecretItem, SecretItemData, SecretItemKeyPairData } from './definitions';
+import { AccountId, PrivateKey, PublicKey } from '@hashgraph/sdk';
+import { AccountInfoData } from '../hashgraph/definitions';
+import { SecretAccountInfoData, SecretItem, SecretItemData } from './definitions';
 
 @Injectable()
 export class VaultManagerService implements OnModuleInit {
@@ -55,11 +56,12 @@ export class VaultManagerService implements OnModuleInit {
     return (await this.vault.readKVSecret(this.token, key)).data;
   }
 
-  // async getDepartmentKeyPairSecret(departmentId: number): Promise<DepartmentKeyPair> {
-  //   const secret = await this.getSecretValue<SecretItemKeyPairData>(departmentId.toString());
-  //   return {
-  //     publicKey: PublicKey.fromStringED25519(secret.publicKey),
-  //     privateKey: PrivateKey.fromStringED25519(secret.privateKey),
-  //   };
-  // }
+  async getAccountInfoSecret(departmentId: number): Promise<AccountInfoData> {
+    const secret = await this.getSecretValue<SecretAccountInfoData>(departmentId.toString());
+    return {
+      accountId: AccountId.fromString(secret.accountId),
+      publicKey: PublicKey.fromStringED25519(secret.publicKey),
+      privateKey: PrivateKey.fromStringED25519(secret.privateKey),
+    };
+  }
 }

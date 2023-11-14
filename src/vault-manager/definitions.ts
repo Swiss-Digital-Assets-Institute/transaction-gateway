@@ -2,7 +2,8 @@ export type SecretItem<T extends SecretItemData> = {
   name: string;
   data: T;
 };
-export type SecretItemKeyPairData = {
+export type SecretAccountInfoData = {
+  accountId: string;
   publicKey: string;
   privateKey: string;
 };
@@ -10,4 +11,4 @@ export type SecretItemKeyPairData = {
 export type SecretItemStringData = {
   value: string;
 };
-export type SecretItemData = SecretItemKeyPairData | SecretItemStringData;
+export type SecretItemData = SecretAccountInfoData | SecretItemStringData;
