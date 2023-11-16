@@ -3,7 +3,8 @@ import Vault from 'hashi-vault-js';
 import { ConfigService } from '@nestjs/config';
 import { AccountId, PrivateKey, PublicKey } from '@hashgraph/sdk';
 import { AccountInfoData } from '../hashgraph/definitions';
-import { SecretAccountInfoData, SecretItem, SecretItemData } from './definitions';
+import { executorWalletSecretKey } from '../constants';
+import { SecretAccountInfoData, SecretItemData } from './definitions';
 
 @Injectable()
 export class VaultManagerService implements OnModuleInit {
@@ -41,11 +42,7 @@ export class VaultManagerService implements OnModuleInit {
   }
 
   async createSecret<T extends SecretItemData>(key: string, value: T) {
-    const item: SecretItem<T> = {
-      name: key,
-      data: { ...value },
-    };
-    await this.vault.createKVSecret(this.token, item.name, item.data);
+    await this.vault.createKVSecret(this.token, key, value);
   }
 
   async eliminateSecret(key: string) {
@@ -56,8 +53,8 @@ export class VaultManagerService implements OnModuleInit {
     return (await this.vault.readKVSecret(this.token, key)).data;
   }
 
-  async getAccountInfoSecret(departmentId: number): Promise<AccountInfoData> {
-    const secret = await this.getSecretValue<SecretAccountInfoData>(departmentId.toString());
+  async getAccountInfoSecret(): Promise<AccountInfoData> {
+    const secret = await this.getSecretValue<SecretAccountInfoData>(executorWalletSecretKey);
     return {
       accountId: AccountId.fromString(secret.accountId),
       publicKey: PublicKey.fromStringED25519(secret.publicKey),

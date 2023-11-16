@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import Vault from 'hashi-vault-js';
 import { VaultManagerService } from './vault-manager.service';
-console.log(Vault);
 
 @Module({
   imports: [ConfigModule],

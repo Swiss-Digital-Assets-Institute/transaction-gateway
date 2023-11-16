@@ -1,7 +1,8 @@
-import { AccountId, Client, PrivateKey, PublicKey, TokenId } from '@hashgraph/sdk';
+import { AccountId, Client, PrivateKey, PublicKey } from '@hashgraph/sdk';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HashgraphService } from './hashgraph.service';
+import { HashgraphController } from './hashgraph.controller';
 
 @Module({
   imports: [ConfigModule, Client], // Ensure ConfigModule is imported if not done already
@@ -54,6 +55,7 @@ import { HashgraphService } from './hashgraph.service';
       inject: [ConfigService],
     },
   ],
-  exports: [HashgraphService, Client, PublicKey, PrivateKey, AccountId], // Ensure Client is exported if it's needed elsewhere
+  exports: [HashgraphService, Client, PublicKey, PrivateKey, AccountId],
+  controllers: [HashgraphController], // Ensure Client is exported if it's needed elsewhere
 })
 export class HashgraphModule {}

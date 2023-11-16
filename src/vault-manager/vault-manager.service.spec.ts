@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import Vault from 'hashi-vault-js';
 import { ConfigService } from '@nestjs/config';
-import { PrivateKey, PublicKey } from '@hashgraph/sdk';
+import { AccountId, PrivateKey, PublicKey } from '@hashgraph/sdk';
+import { executorWalletSecretKey } from '../constants';
 import { VaultManagerService } from './vault-manager.service';
 jest.mock('@hashgraph/sdk');
 
@@ -98,13 +99,9 @@ describe('VaultManagerService', () => {
 
   it('createSecret method should call create secret in vault', async () => {
     const keyMock = 'key';
-    const valueMock = { id: '111', publicKey: 'abcdef-12345', privateKey: 'ghijklm-67890' };
+    const valueMock = { accountId: '111', publicKey: 'abcdef-12345', privateKey: 'ghijklm-67890' };
     await service.createSecret(keyMock, valueMock);
-    expect(vaultMock.createKVSecret).toHaveBeenCalledWith(undefined, 'key', {
-      id: '111',
-      publicKey: 'abcdef-12345',
-      privateKey: 'ghijklm-67890',
-    });
+    expect(vaultMock.createKVSecret).toHaveBeenCalledWith(undefined, 'key', valueMock);
   });
 
   it('eliminateSecret method should call eliminate secret in vault', async () => {
@@ -121,28 +118,33 @@ describe('VaultManagerService', () => {
     expect(vaultMock.readKVSecret).toHaveBeenCalledWith(undefined, keyMock);
   });
 
-  // it('getDepartmentKeyPairSecret should call getSecret method and create instances of returned key pair ', async () => {
-  //   const stringKeyPairMock = {
-  //     publicKey: '123',
-  //     privateKey: '234',
-  //   };
-  //   const pubKeyMock = 'pubKeyMock';
-  //   const privKeyMock = 'privKeyMock';
-  //   const departmentIdMock = 1;
-  //   const getSecretValueSpy = jest.spyOn(service, 'getSecretValue').mockResolvedValue(stringKeyPairMock);
-  //   //@ts-expect-error ignoring typings
-  //   const publicKeySpy = jest.spyOn(PublicKey, 'fromStringED25519').mockReturnValue(pubKeyMock);
-  //   //@ts-expect-error ignoring typings
-  //   const privateKeySpy = jest.spyOn(PrivateKey, 'fromStringED25519').mockReturnValue(privKeyMock);
+  it('getDepartmentKeyPairSecret should call getSecret method and create instances of returned key pair ', async () => {
+    const accountInfoSecretMock = {
+      accountId: '0.0.1',
+      publicKey: '123',
+      privateKey: '234',
+    };
+    const accountIdMock = '1.0.0';
+    const pubKeyMock = 'pubKeyMock';
+    const privKeyMock = 'privKeyMock';
+    const getSecretValueSpy = jest.spyOn(service, 'getSecretValue').mockResolvedValue(accountInfoSecretMock);
+    //@ts-expect-error ignoring typings
+    const accountIdSpy = jest.spyOn(AccountId, 'fromString').mockReturnValue(accountIdMock);
+    //@ts-expect-error ignoring typings
+    const publicKeySpy = jest.spyOn(PublicKey, 'fromStringED25519').mockReturnValue(pubKeyMock);
+    //@ts-expect-error ignoring typings
+    const privateKeySpy = jest.spyOn(PrivateKey, 'fromStringED25519').mockReturnValue(privKeyMock);
 
-  //   const result = await service.getDepartmentKeyPairSecret(departmentIdMock);
+    const result = await service.getAccountInfoSecret();
 
-  //   expect(result).toStrictEqual({
-  //     publicKey: pubKeyMock,
-  //     privateKey: privKeyMock,
-  //   });
-  //   expect(getSecretValueSpy).toHaveBeenCalledWith(departmentIdMock.toString());
-  //   expect(publicKeySpy).toHaveBeenCalledWith(stringKeyPairMock.publicKey);
-  //   expect(privateKeySpy).toHaveBeenCalledWith(stringKeyPairMock.privateKey);
-  // });
+    expect(result).toStrictEqual({
+      accountId: accountIdMock,
+      publicKey: pubKeyMock,
+      privateKey: privKeyMock,
+    });
+    expect(getSecretValueSpy).toHaveBeenCalledWith(executorWalletSecretKey);
+    expect(accountIdSpy).toHaveBeenCalledWith(accountInfoSecretMock.accountId);
+    expect(publicKeySpy).toHaveBeenCalledWith(accountInfoSecretMock.publicKey);
+    expect(privateKeySpy).toHaveBeenCalledWith(accountInfoSecretMock.privateKey);
+  });
 });

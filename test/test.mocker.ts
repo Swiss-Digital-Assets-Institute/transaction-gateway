@@ -13,6 +13,11 @@ const prismaEntityMockFactory = () => ({
   findMany: jest.fn(),
 });
 
+export const hashgraphServiceMockFactory = () => ({
+  executeTransaction: jest.fn(),
+  getOperatorAccountId: jest.fn(),
+});
+
 export const prismaMockFactory = () => {
   return {
     user: prismaEntityMockFactory(),
