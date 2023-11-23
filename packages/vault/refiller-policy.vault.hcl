@@ -1,7 +1,7 @@
-path "secret/refiller/*" {
+path "secret/data/refiller*" {
   capabilities = ["read", "list"]
 }
 
-path "secret/executor/*" {
+path "secret/data/executor*" {
   capabilities = ["read", "list"]
 }

@@ -1,11 +1,12 @@
-import { AccountId, Client, PrivateKey, PublicKey } from '@hashgraph/sdk';
+import { Client } from '@hashgraph/sdk';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { VaultManagerModule } from '../vault-manager/vault-manager.module';
 import { HashgraphService } from './hashgraph.service';
 import { HashgraphController } from './hashgraph.controller';
 
 @Module({
-  imports: [ConfigModule, Client], // Ensure ConfigModule is imported if not done already
+  imports: [ConfigModule, Client, VaultManagerModule], // Ensure ConfigModule is imported if not done already
   providers: [
     HashgraphService,
     {
@@ -25,37 +26,12 @@ import { HashgraphController } from './hashgraph.controller';
           default:
             client = Client.forTestnet();
         }
-        client.setOperator(
-          configService.get<string>('HASHGRAPH_ACCOUNT_ID'),
-          configService.get<string>('HASHGRAPH_PRIVATE_KEY'),
-        );
         return client;
       },
       inject: [ConfigService], // this ensures the ConfigService is injected into the factory
     },
-    {
-      provide: AccountId,
-      useFactory: (configService: ConfigService) => {
-        return AccountId.fromString(configService.get<string>('HASHGRAPH_ACCOUNT_ID'));
-      },
-      inject: [ConfigService],
-    },
-    {
-      provide: PublicKey,
-      useFactory: (configService: ConfigService) => {
-        return PublicKey.fromStringECDSA(configService.get<string>('HASHGRAPH_PUBLIC_KEY'));
-      },
-      inject: [ConfigService],
-    },
-    {
-      provide: PrivateKey,
-      useFactory: (configService: ConfigService) => {
-        return PrivateKey.fromString(configService.get<string>('HASHGRAPH_PRIVATE_KEY'));
-      },
-      inject: [ConfigService],
-    },
   ],
-  exports: [HashgraphService, Client, PublicKey, PrivateKey, AccountId],
+  exports: [HashgraphService, Client],
   controllers: [HashgraphController], // Ensure Client is exported if it's needed elsewhere
 })
 export class HashgraphModule {}

@@ -1,3 +1,3 @@
-path "secret/executor/*" {
+path "secret/data/executor*" {
   capabilities = ["read", "list"]
 }

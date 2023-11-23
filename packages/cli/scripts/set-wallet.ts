@@ -13,11 +13,6 @@ const optionDefinitions = [
 ];
 const options: SetWalletCliParams = commandLineArgs(optionDefinitions);
 
-function checkKey(key: string): void {
-  if (![executorWalletSecretKey, refillerWalletSecretKey].includes(key))
-    throw new Error(`Secret key "${key}" is not allowed.`);
-}
-
 // Asynchronous function for setting up a wallet
 async function setWallet(): Promise<void> {
   // Destructure options object to extract accountId, publicKey, privateKey, and secretKey
@@ -28,19 +23,26 @@ async function setWallet(): Promise<void> {
   PublicKey.fromStringED25519(publicKey);
   PrivateKey.fromStringED25519(privateKey);
   checkKey(secretKey); // Custom function to check is the secretKey allowed
+  const mount = '/secret';
 
   // Asynchronously initialize the config
   const config = await getConfig();
 
   // Remove any existing secret with the secretKey
-  await config.vault.eliminateKVSecret(config.token, secretKey);
+  await config.vault.eliminateKVSecret(config.token, secretKey, mount);
 
   // Create a new secret with the secretKey and specified account information
-  await config.vault.createKVSecret(config.token, secretKey, {
-    accountId,
-    publicKey,
-    privateKey,
-  });
+
+  await config.vault.createKVSecret(
+    config.token,
+    secretKey,
+    {
+      accountId,
+      publicKey,
+      privateKey,
+    },
+    mount,
+  );
 }
 
 async function getConfig(): Promise<Promise<VaultConfig>> {
@@ -58,6 +60,11 @@ async function getConfig(): Promise<Promise<VaultConfig>> {
   const loginResponse = await vault.loginWithAppRole(appRoleId, secretId);
   const token = loginResponse.client_token;
   return { vault, token };
+}
+
+function checkKey(key: string): void {
+  if (![executorWalletSecretKey, refillerWalletSecretKey].includes(key))
+    throw new Error(`Secret key "${key}" is not allowed.`);
 }
 
 setWallet().then(() => {

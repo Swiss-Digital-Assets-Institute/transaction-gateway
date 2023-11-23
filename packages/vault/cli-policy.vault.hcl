@@ -1,7 +1,15 @@
-path "secret/refiller/*" {
-  capabilities = ["create", "read", "update", "patch", "delete", "list"]
+path "secret/data/refiller*" {
+  capabilities = ["create", "read", "update", "patch", "list"]
 }
 
-path "secret/executor/*" {
-  capabilities = ["create", "read", "update", "patch", "delete", "list"]
+path "secret/data/executor*" {
+  capabilities = ["create", "read", "update", "patch", "list"]
+}
+
+path "secret/metadata/refiller*" {
+  capabilities = ["delete"]
+}
+
+path "secret/metadata/executor*" {
+  capabilities = ["delete"]
 }

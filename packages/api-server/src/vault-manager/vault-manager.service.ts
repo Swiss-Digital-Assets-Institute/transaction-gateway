@@ -9,6 +9,7 @@ import { SecretAccountInfoData, SecretItemData } from './definitions';
 @Injectable()
 export class VaultManagerService implements OnModuleInit {
   private readonly logger = new Logger(VaultManagerService.name);
+  private readonly mount = 'secret';
   private token: string;
   private appRoleId: string;
   private secretId: string;
@@ -19,6 +20,7 @@ export class VaultManagerService implements OnModuleInit {
     this.secretId = this.configService.getOrThrow<string>('VAULT_APP_ROLE_SECRET_ID');
     const response = await this.vault.healthCheck({});
     if (!response.initialized) throw new Error("Vault healthcheck hasn't passed.");
+
     await this.auth();
   }
 
@@ -36,7 +38,7 @@ export class VaultManagerService implements OnModuleInit {
   }
 
   async getSecretValue<T extends SecretItemData>(key: string): Promise<T> {
-    return (await this.vault.readKVSecret(this.token, key)).data;
+    return (await this.vault.readKVSecret(this.token, key, 1, this.mount)).data;
   }
 
   async getAccountInfoSecret(): Promise<AccountInfoData> {
