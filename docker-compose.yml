@@ -20,13 +20,16 @@ services:
   vault:
     image: hashicorp/vault:latest
     build:
-      dockerfile: ./docker/Dockerfile.vault
+      dockerfile: ./packages/vault/docker/Dockerfile.vault
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN}
     ports:
       - 8200:8200
+    container_name: vault
     volumes:
-      - ./docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
-      - ./app-policy.vault.hcl:/app-policy.vault.hcl
+      - ./packages/vault/docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
+      - ./packages/vault/cli-policy.vault.hcl:/cli-policy.vault.hcl
+      - ./packages/vault/executor-policy.vault.hcl:/executor-policy.vault.hcl
+      - ./packages/vault/refiller-policy.vault.hcl:/refiller-policy.vault.hcl
     privileged: true
     entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']

@@ -24,9 +24,6 @@
     },
     {
       "path": "packages/cli"
-    },
-    {
-      "path": "packages/vault"
     }
   ]
 }
