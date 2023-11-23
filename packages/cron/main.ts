@@ -1,8 +1,7 @@
 import { AccountId, Client, PrivateKey, TransferTransaction } from '@hashgraph/sdk';
 import Vault from 'hashi-vault-js';
-import { executorWalletSecretKey, refillerWalletSecretKey } from '../api-server/src/constants';
-import { SecretAccountInfoData } from '../api-server/src/vault-manager/definitions';
-import { ConfigurationType } from './definitions';
+import { executorWalletSecretKey, refillerWalletSecretKey } from './constants';
+import { ConfigurationType, SecretAccountInfoData } from './definitions';
 
 export async function main() {
   const config = await getConfig();

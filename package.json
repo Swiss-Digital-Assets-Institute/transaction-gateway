@@ -6,7 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "api-server": "pnpm --filter @transaction-gateway/api-server"
+    "api-server": "pnpm --filter @transaction-gateway/api-server",
+    "cron": "pnpm --filter @transaction-gateway/cron",
+    "cli": "pnpm --filter @transaction-gateway/cli"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",

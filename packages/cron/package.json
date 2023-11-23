@@ -1,5 +1,5 @@
 {
-  "name": "cron",
+  "name": "@transaction-gateway/cron",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",

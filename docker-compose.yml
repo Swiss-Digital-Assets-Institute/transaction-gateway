@@ -2,9 +2,9 @@ version: '3.7'
 services:
   backend:
     build:
-      context: .
+      context: ./packages/api-server
       target: backend
-      dockerfile: docker/Dockerfile
+      dockerfile: ./packages/api-server/docker/Dockerfile
     depends_on:
       - backend_db
       - vault

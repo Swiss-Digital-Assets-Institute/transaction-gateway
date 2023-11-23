@@ -10,30 +10,16 @@ import { SecretAccountInfoData, SecretItemData } from './definitions';
 export class VaultManagerService implements OnModuleInit {
   private readonly logger = new Logger(VaultManagerService.name);
   private token: string;
-  // This secrets should be used by admin server(current functionality is only for dev usage) to be able to supply client token. For more info: https://developer.hashicorp.com/vault/tutorials/auth-methods/approle
-  private adminToken: string;
   private appRoleId: string;
   private secretId: string;
-  private appRole: string;
-  // This secrets should be used by admin server(current functionality is only for dev usage) to be able to supply client token. For more info: https://developer.hashicorp.com/vault/tutorials/auth-methods/approle
   constructor(private readonly vault: Vault, private readonly configService: ConfigService) {}
 
   async onModuleInit() {
-    // TODO: remove this lines for production ready environment
     this.appRoleId = this.configService.getOrThrow<string>('VAULT_APP_ROLE_ID');
-    this.appRole = this.configService.getOrThrow<string>('VAULT_APP_ROLE');
-    this.adminToken = this.configService.getOrThrow<string>('VAULT_ROOT_TOKEN');
-    await this.adminAuth();
-    // TODO: remove this lines for production ready environment
-    await this.auth();
+    this.secretId = this.configService.getOrThrow<string>('VAULT_APP_ROLE_SECRET_ID');
     const response = await this.vault.healthCheck({});
     if (!response.initialized) throw new Error("Vault healthcheck hasn't passed.");
-  }
-
-  // Function is created to simulate admin server behavior, in prod this should be set up as a separate service
-  async adminAuth() {
-    const secretIdResponse = await this.vault.generateAppRoleSecretId(this.adminToken, this.appRole);
-    this.secretId = secretIdResponse.secret_id;
+    await this.auth();
   }
 
   async auth() {

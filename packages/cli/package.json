@@ -1,11 +1,13 @@
 {
-  "name": "transaction-gateway-monorepo",
+  "name": "@transaction-gateway/cli",
   "version": "0.0.1",
   "description": "",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "scripts": {},
+  "scripts": {
+    "setWallet": "ts-node scripts/set-wallet.ts"
+  },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",
     "@types/uuid": "^9.0.7",
