@@ -4,7 +4,7 @@ services:
     build:
       context: ./packages/api-server
       target: backend
-      dockerfile: ./packages/api-server/docker/Dockerfile
+      dockerfile: ./docker/Dockerfile
     depends_on:
       - backend_db
       - vault

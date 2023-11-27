@@ -12,6 +12,7 @@ const optionDefinitions = [
   { name: 'privateKey', type: String },
 ];
 const options: SetWalletCliParams = commandLineArgs(optionDefinitions);
+const mount = '/secret';
 
 // Asynchronous function for setting up a wallet
 async function setWallet(): Promise<void> {
@@ -23,7 +24,6 @@ async function setWallet(): Promise<void> {
   PublicKey.fromStringED25519(publicKey);
   PrivateKey.fromStringED25519(privateKey);
   checkKey(secretKey); // Custom function to check is the secretKey allowed
-  const mount = '/secret';
 
   // Asynchronously initialize the config
   const config = await getConfig();

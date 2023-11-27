@@ -16,7 +16,7 @@ vault auth enable approle;
 
 vault write auth/approle/role/executor \
     token_policies="executor" \
-    secret_id_ttl=10m \
+    secret_id_ttl=8h \
     token_num_uses=10 \
     token_ttl=20m \
     token_max_ttl=30m \
@@ -26,7 +26,7 @@ vault write -f auth/approle/role/executor/secret-id;
 
 vault write auth/approle/role/refiller \
     token_policies="refiller" \
-    secret_id_ttl=10m \
+    secret_id_ttl=8h \
     token_num_uses=10 \
     token_ttl=20m \
     token_max_ttl=30m \
@@ -36,7 +36,7 @@ vault write -f auth/approle/role/refiller/secret-id;
 
 vault write auth/approle/role/cli \
     token_policies="cli" \
-    secret_id_ttl=10m \
+    secret_id_ttl=8h \
     token_num_uses=10 \
     token_ttl=20m \
     token_max_ttl=30m \

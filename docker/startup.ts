@@ -3,7 +3,9 @@ import childProcess from 'child_process';
 import { resolve } from 'path';
 import { readFile, writeFile, access, constants, copyFile } from 'fs/promises';
 import axios from 'axios';
+import { config } from 'dotenv';
 import { AppRoleData } from './definitions';
+config();
 
 const exec = promisify(childProcess.exec);
 
@@ -13,6 +15,9 @@ const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 
 async function main(): Promise<void> {
   await exec('docker-compose stop vault');
+  await exec('docker-compose stop backend_db');
+  await exec('docker-compose stop backend');
+
   startVault();
   await waitForVault();
   const std = await exec('docker logs vault');
@@ -24,7 +29,10 @@ async function main(): Promise<void> {
     appRoleDataArray.push(appRoleData);
   }
   console.log('appRoleDataArray', appRoleDataArray);
-  updateEnvFiles(appRoleDataArray);
+  await updateEnvFiles(appRoleDataArray);
+  await setWalletsKeys();
+  await exec('docker-compose up backend_db -d');
+  await exec('docker-compose up backend -d --build');
 }
 
 function getAppRoleDataFromString(string: string): AppRoleData {
@@ -81,6 +89,23 @@ async function createEnvIfNotExist(path: string) {
   } catch (err) {
     await copyFile(path + '.example', path);
   }
+}
+
+async function setWalletsKeys() {
+  const {
+    EXECUTOR_ACCOUNT_ID,
+    EXECUTOR_PUBLIC_KEY,
+    EXECUTOR_PRIVATE_KEY,
+    REFILLER_ACCOUNT_ID,
+    REFILLER_PUBLIC_KEY,
+    REFILLER_PRIVATE_KEY,
+  } = process.env;
+  await exec(
+    `pnpm cli setWallet  --accountId ${EXECUTOR_ACCOUNT_ID} --publicKey ${EXECUTOR_PUBLIC_KEY} --privateKey ${EXECUTOR_PRIVATE_KEY} --secretKey executorKeyPair`,
+  );
+  await exec(
+    `pnpm cli setWallet  --accountId ${REFILLER_ACCOUNT_ID} --publicKey ${REFILLER_PUBLIC_KEY} --privateKey ${REFILLER_PRIVATE_KEY} --secretKey refillerKeyPair`,
+  );
 }
 
 async function waitForVault() {

@@ -23,7 +23,8 @@ WORKDIR /app
 
 COPY --chown=node:node package*.json docker/docker-entrypoint.sh /app/
 
-RUN pnpm install
+# RUN pnpm install
+RUN pnpm deploy ./
 
 COPY --chown=node:node ./ /app/
 

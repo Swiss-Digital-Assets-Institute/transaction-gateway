@@ -8,7 +8,8 @@
   "scripts": {
     "api-server": "pnpm --filter @transaction-gateway/api-server",
     "cron": "pnpm --filter @transaction-gateway/cron",
-    "cli": "pnpm --filter @transaction-gateway/cli"
+    "cli": "pnpm --filter @transaction-gateway/cli",
+    "docker:startup": "ts-node docker/startup.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",

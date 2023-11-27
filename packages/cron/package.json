@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "launch": "ts-node main.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",

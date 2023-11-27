@@ -221,6 +221,9 @@ importers:
       pnpm:
         specifier: ^8.6.12
         version: 8.6.12
+      prisma:
+        specifier: ^5.1.0
+        version: 5.1.0
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.13
@@ -230,9 +233,6 @@ importers:
       uuid:
         specifier: ^9.0.1
         version: 9.0.1
-      webpack-node-externals:
-        specifier: ^3.0.0
-        version: 3.0.0
     devDependencies:
       '@nestjs/testing':
         specifier: ^10.2.1
