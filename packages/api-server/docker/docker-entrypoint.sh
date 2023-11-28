@@ -2,6 +2,6 @@
 
 npx prisma migrate deploy
 if [ $DEV ]; then
- pnpm seed
+ node dist/prisma/seed.js
 fi 
-pnpm run start:dev
+pnpm run start:prod

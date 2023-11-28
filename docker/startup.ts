@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { readFile, writeFile, access, constants, copyFile } from 'fs/promises';
 import axios from 'axios';
 import { config } from 'dotenv';
+import cla from 'command-line-args';
 import { AppRoleData } from './definitions';
 config();
 
@@ -13,14 +14,16 @@ const appRoles = ['executor', 'refiller', 'cli'];
 
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 
+const optionDefinitions = [{ name: 'build', type: Boolean }];
+const { build } = cla(optionDefinitions);
+
 async function main(): Promise<void> {
-  await exec('docker-compose stop vault');
-  await exec('docker-compose stop backend_db');
-  await exec('docker-compose stop backend');
+  const start = Date.now();
+  await execute('docker-compose down');
 
   startVault();
   await waitForVault();
-  const std = await exec('docker logs vault');
+  const std = await execute('docker logs vault');
   const splitted = std.stdout.split('Success! Data written to: auth/approle/role/');
   const appRoleDataArray = [];
   for (let i = 1; i < splitted.length; i++) {
@@ -31,8 +34,23 @@ async function main(): Promise<void> {
   console.log('appRoleDataArray', appRoleDataArray);
   await updateEnvFiles(appRoleDataArray);
   await setWalletsKeys();
-  await exec('docker-compose up backend_db -d');
-  await exec('docker-compose up backend -d --build');
+
+  await execute('docker-compose up backend_db -d');
+  await execute(`docker-compose create backend ${build ? '--build' : ''}`);
+  await execute('docker-compose start backend');
+  const end = Date.now();
+
+  console.log(`Done in ${(end - start) / 1000} s.`);
+}
+
+async function execute(command: string) {
+  console.log(`Running command: ${command} ...`);
+  const logs = await exec(command);
+  console.log('Stdout:', logs.stdout);
+  console.log('Stderr:', logs.stderr);
+  console.log(`Command '${command}' is executed.`);
+
+  return logs;
 }
 
 function getAppRoleDataFromString(string: string): AppRoleData {
@@ -125,7 +143,10 @@ async function waitForVault() {
 }
 
 function startVault() {
-  const ls = childProcess.spawn('docker-compose', ['up', 'vault', '--build', '-d']);
+  const params = ['up', 'vault', '-d'];
+  if (build) params.push('--build');
+
+  const ls = childProcess.spawn('docker-compose', params);
 
   ls.stdout.on('data', (data) => {
     console.log(`stdout: ${data}`);
@@ -141,5 +162,5 @@ function startVault() {
 }
 
 main().then(() => {
-  console.log('start');
+  console.log('started');
 });
