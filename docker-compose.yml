@@ -10,6 +10,7 @@ services:
     depends_on:
       - vault
       - backend_db
+
   backend_db:
     image: postgres:15.3-alpine
     ports:
@@ -17,8 +18,8 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+
   vault:
-    image: hashicorp/vault:latest
     build:
       dockerfile: ./packages/vault/docker/Dockerfile.vault
     environment:
@@ -28,8 +29,6 @@ services:
     container_name: vault
     volumes:
       - ./packages/vault/docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
-      - ./packages/vault/cli-policy.vault.hcl:/cli-policy.vault.hcl
-      - ./packages/vault/executor-policy.vault.hcl:/executor-policy.vault.hcl
-      - ./packages/vault/refiller-policy.vault.hcl:/refiller-policy.vault.hcl
+      - ./packages/vault/policies/:/policies/
     privileged: true
     entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']

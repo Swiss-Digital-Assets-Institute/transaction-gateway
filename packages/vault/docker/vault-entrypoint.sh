@@ -9,9 +9,9 @@ export VAULT_TOKEN=${VAULT_DEV_ROOT_TOKEN_ID};
 
 vault status;
 
-vault policy write executor executor-policy.vault.hcl
-vault policy write refiller refiller-policy.vault.hcl
-vault policy write cli cli-policy.vault.hcl
+vault policy write executor ./policies/executor-policy.vault.hcl
+vault policy write refiller ./policies/refiller-policy.vault.hcl
+vault policy write cli ./policies/cli-policy.vault.hcl
 vault auth enable approle;
 
 vault write auth/approle/role/executor \
