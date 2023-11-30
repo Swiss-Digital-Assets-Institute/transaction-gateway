@@ -1,10 +1,9 @@
 import commandLineArgs from 'command-line-args';
 import Vault from 'hashi-vault-js';
-import { config } from 'dotenv';
 import { AccountId, PrivateKey, PublicKey } from '@hashgraph/sdk';
 import { executorWalletSecretKey, refillerWalletSecretKey } from '../constants';
 import { SetWalletCliParams, VaultConfig } from './definitions';
-config();
+
 const optionDefinitions = [
   { name: 'secretKey', type: String },
   { name: 'accountId', type: String },

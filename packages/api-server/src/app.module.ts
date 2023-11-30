@@ -11,7 +11,7 @@ import { VaultManagerModule } from './vault-manager/vault-manager.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '../../../.env.api-server' }),
     UserModule,
     HashgraphModule,
     VaultManagerModule,

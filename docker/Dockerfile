@@ -28,7 +28,6 @@ USER node
 
 WORKDIR /prod/backend
 RUN pnpm generate
-COPY --chown=node:node packages/api-server/docker/docker-entrypoint.sh ./
-# COPY --chown=node:node packages/api-server/docker/docker-entrypoint.sh packages/api-server/.env ./
+COPY --chown=node:node docker/api-server-entrypoint.sh ./
 
-CMD ["./docker-entrypoint.sh"]
+CMD ["./api-server-entrypoint.sh"]

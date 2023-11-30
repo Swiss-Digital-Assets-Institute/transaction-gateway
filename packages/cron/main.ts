@@ -1,9 +1,7 @@
 import { AccountId, Client, PrivateKey, TransferTransaction } from '@hashgraph/sdk';
 import Vault from 'hashi-vault-js';
-import { config } from 'dotenv';
 import { executorWalletSecretKey, refillerWalletSecretKey } from './constants';
 import { ConfigurationType, SecretAccountInfoData } from './definitions';
-config();
 const mount = '/secret';
 
 export async function main() {

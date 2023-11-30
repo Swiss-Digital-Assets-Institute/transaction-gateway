@@ -6,7 +6,7 @@ services:
       target: backend
       dockerfile: ./docker/Dockerfile
     env_file:
-      - ./packages/api-server/.env
+      - ./.env.api-server
     depends_on:
       - vault
       - backend_db
@@ -21,14 +21,14 @@ services:
 
   vault:
     build:
-      dockerfile: ./packages/vault/docker/Dockerfile.vault
+      dockerfile: ./docker/vault.Dockerfile
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN}
     ports:
       - 8200:8200
     container_name: vault
     volumes:
-      - ./packages/vault/docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
+      - ./docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
       - ./packages/vault/policies/:/policies/
     privileged: true
     entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']

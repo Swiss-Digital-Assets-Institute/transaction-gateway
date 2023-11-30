@@ -1,4 +1,7 @@
 .env
+.env.cli
+.env.cron
+.env.api-server
 
 # compiled output
 /dist

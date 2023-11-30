@@ -76,13 +76,13 @@ async function updateEnvFileStrategy(appRoleData: AppRoleData) {
   let path: string;
   switch (appRoleData.appRole) {
     case 'executor':
-      path = resolve(__dirname, '../packages/api-server/.env');
+      path = resolve(__dirname, '../.env.api-server');
       break;
     case 'refiller':
-      path = resolve(__dirname, '../packages/cron/.env');
+      path = resolve(__dirname, '../.env.cron');
       break;
     case 'cli':
-      path = resolve(__dirname, '../packages/cli/.env');
+      path = resolve(__dirname, '../.env.cli');
       break;
 
     default:
@@ -127,7 +127,7 @@ async function setWalletsKeys() {
 }
 
 async function waitForVault() {
-  const retryDelay = 3000;
+  const retryDelay = 5000;
   let retry = true;
   while (retry) {
     try {
