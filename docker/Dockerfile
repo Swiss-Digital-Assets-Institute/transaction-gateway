@@ -15,19 +15,27 @@ ENV LANG=C.UTF-8
 FROM base AS build
 COPY . /usr/src/app
 WORKDIR /usr/src/app
-
-RUN npm install -g pnpm
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm --filter=api-server generate
-RUN pnpm --filter=api-server build
+RUN pnpm -r build
 RUN pnpm deploy --filter=api-server /prod/backend
+RUN pnpm deploy --filter=cron /prod/cron
+RUN pnpm deploy --filter=cli /prod/cli
 
 FROM base AS backend
 COPY --chown=node:node --from=build /prod/backend /prod/backend
 USER node
-
 WORKDIR /prod/backend
-RUN pnpm generate
 COPY --chown=node:node docker/api-server-entrypoint.sh ./
-
 CMD ["./api-server-entrypoint.sh"]
+
+FROM base AS cron
+COPY --chown=node:node --from=build /prod/cron /prod/cron
+USER node
+WORKDIR /prod/cron
+ENTRYPOINT ["tail", "-f", "/dev/null"]
+
+FROM base AS cli
+COPY --chown=node:node --from=build /prod/cli /prod/cli
+USER node
+WORKDIR /prod/cli
+ENTRYPOINT ["tail", "-f", "/dev/null"]

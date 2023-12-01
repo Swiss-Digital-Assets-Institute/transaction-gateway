@@ -35,9 +35,13 @@ async function main(): Promise<void> {
   await updateEnvFiles(appRoleDataArray);
   await setWalletsKeys();
 
-  await execute('docker-compose up backend_db -d');
-  await execute(`docker-compose create backend ${build ? '--build' : ''}`);
+  const cliPromise = execute(`docker-compose up cli -d ${build ? '--build' : ''}`);
+  const cronPromise = execute(`docker-compose up cron -d ${build ? '--build' : ''}`);
+  const apiServerPromise = execute(`docker-compose create backend ${build ? '--build' : ''}`);
+
+  await Promise.all([cliPromise, cronPromise, apiServerPromise]);
   await execute('docker-compose start backend');
+
   const end = Date.now();
 
   console.log(`Done in ${(end - start) / 1000} s.`);

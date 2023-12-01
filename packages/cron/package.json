@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "launch": "DOTENV_CONFIG_PATH=../../.env.cron NODE_OPTIONS='-r dotenv/config' ts-node main.ts"
+    "launch": "DOTENV_CONFIG_PATH=../../.env.cron NODE_OPTIONS='-r dotenv/config' ts-node main.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",
