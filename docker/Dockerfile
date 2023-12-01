@@ -17,9 +17,9 @@ COPY . /usr/src/app
 WORKDIR /usr/src/app
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm -r build
-RUN pnpm deploy --filter=api-server /prod/backend
-RUN pnpm deploy --filter=cron /prod/cron
-RUN pnpm deploy --filter=cli /prod/cli
+RUN pnpm deploy --filter=api-server --prod /prod/backend
+RUN pnpm deploy --filter=cron --prod /prod/cron
+RUN pnpm deploy --filter=cli --prod /prod/cli
 
 FROM base AS backend
 COPY --chown=node:node --from=build /prod/backend /prod/backend
