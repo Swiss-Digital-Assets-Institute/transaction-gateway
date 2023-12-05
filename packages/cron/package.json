@@ -2,13 +2,14 @@
   "name": "@transaction-gateway/cron",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "launch": "DOTENV_CONFIG_PATH=../../.env.cron NODE_OPTIONS='-r dotenv/config' ts-node main.ts",
+    "launch": "DOTENV_CONFIG_PATH=../../.env.cron NODE_OPTIONS='-r dotenv/config' ts-node cron.ts",
+    "launch:prod": "node dist/cron.js",
     "build": "tsc"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",
+    "cron": "^3.1.6",
     "hashi-vault-js": "^0.4.14"
   },
   "devDependencies": {

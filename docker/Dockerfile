@@ -32,7 +32,7 @@ FROM base AS cron
 COPY --chown=node:node --from=build /prod/cron /prod/cron
 USER node
 WORKDIR /prod/cron
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["pnpm", "launch:prod"]
 
 FROM base AS cli
 COPY --chown=node:node --from=build /prod/cli /prod/cli

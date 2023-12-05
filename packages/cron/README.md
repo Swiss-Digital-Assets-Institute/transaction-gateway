@@ -3,11 +3,11 @@
 </p>
 
   <h5 align="center">Hashgraph Labs</p>
-  <h3 align="center">Transaction Gateway API Server</p>
+  <h3 align="center">Transaction Gateway CRON</p>
 
 ## Description
 
-Simple API server that signs and executes transactions submitted by a user using wallet set up in vault.
+Cron for transferring tokens from `refiller` to `executor`. When balance of `executor`'s wallet reaches `BALANCE_THRESHOLD` it gets refilled to `BALANCE_TARGET`.
 
 ## Installation
 
@@ -15,9 +15,17 @@ Simple API server that signs and executes transactions submitted by a user using
 $ pnpm install
 ```
 
-## Running the app
+## Run
 
-Have a look at README.md at root folder.
+Launch cron:
+
+```bash
+$ pnpm launch
+```
+
+## Docker
+
+Have a look at **Running the app** section in root folder README.md.
 
 ## Test
 
@@ -25,14 +33,8 @@ Have a look at README.md at root folder.
 # unit tests
 $ pnpm test
 
-# e2e tests
-$ pnpm test:e2e
-
 # test coverage
 $ pnpm test:cov
-
-# test specific files in watch mode
-$ pnpm test:watch
 ```
 
 ## Linting and formatting

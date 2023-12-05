@@ -38,7 +38,7 @@ export class VaultManagerService implements OnModuleInit {
   }
 
   async getSecretValue<T extends SecretItemData>(key: string): Promise<T> {
-    return (await this.vault.readKVSecret(this.token, key, 1, this.mount)).data;
+    return (await this.vault.readKVSecret(this.token, key, 0, this.mount)).data;
   }
 
   async getAccountInfoSecret(): Promise<AccountInfoData> {

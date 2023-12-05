@@ -5,7 +5,8 @@ export type ConfigurationType = {
   refillerAccountId: AccountId;
   refillerPrivateKey: PrivateKey;
   executorAccountId: AccountId;
-  hbarAmount: number;
+  balanceThreshold: number;
+  balanceTarget: number;
 };
 
 export type SecretAccountInfoData = {

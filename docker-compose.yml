@@ -14,14 +14,14 @@ services:
   vault:
     build:
       dockerfile: ./docker/vault.Dockerfile
-    environment:
-      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN}
     ports:
       - 8200:8200
     container_name: vault
     volumes:
       - ./docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
+      - ./docker/create-app-roles.sh:/docker/create-app-roles.sh
       - ./packages/vault/policies/:/policies/
+      - ./packages/vault/config.hcl:/config.hcl
     privileged: true
     entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']
 
