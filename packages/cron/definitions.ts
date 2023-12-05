@@ -7,3 +7,9 @@ export type ConfigurationType = {
   executorAccountId: AccountId;
   hbarAmount: number;
 };
+
+export type SecretAccountInfoData = {
+  accountId: string;
+  publicKey: string;
+  privateKey: string;
+};

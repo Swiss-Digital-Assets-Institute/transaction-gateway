@@ -12,11 +12,5 @@ services:
       - ./src:/app/src
       - ./dist:/dist
 
-  backend_db:
-    volumes:
-      - db:/var/lib/postgresql/data
-    ports:
-      - '6432:5432'
-
 volumes:
   db:

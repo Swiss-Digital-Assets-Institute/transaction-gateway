@@ -1,32 +1,47 @@
 version: '3.7'
 services:
   backend:
+    container_name: backend
     build:
-      context: .
+      context: ./
       target: backend
-      dockerfile: docker/Dockerfile
+      dockerfile: ./docker/Dockerfile
+    env_file:
+      - ./.env.api-server
     depends_on:
-      - backend_db
       - vault
 
-  backend_db:
-    image: postgres:15.3-alpine
-    ports:
-      - '5432:5432'
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-
   vault:
-    image: hashicorp/vault:latest
     build:
-      dockerfile: ./docker/Dockerfile.vault
+      dockerfile: ./docker/vault.Dockerfile
     environment:
       VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN}
     ports:
       - 8200:8200
+    container_name: vault
     volumes:
       - ./docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
-      - ./app-policy.vault.hcl:/app-policy.vault.hcl
+      - ./packages/vault/policies/:/policies/
     privileged: true
     entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']
+
+  cron:
+    container_name: cron
+    build:
+      context: ./
+      target: cron
+      dockerfile: ./docker/Dockerfile
+    env_file:
+      - ./.env.cron
+    depends_on:
+      - vault
+  cli:
+    container_name: cli
+    build:
+      context: ./
+      target: cli
+      dockerfile: ./docker/Dockerfile
+    env_file:
+      - ./.env.cli
+    depends_on:
+      - vault

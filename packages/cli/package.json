@@ -1,19 +1,28 @@
 {
-  "name": "transaction-gateway-monorepo",
+  "name": "@transaction-gateway/cli",
   "version": "0.0.1",
   "description": "",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
-  "scripts": {},
+  "scripts": {
+    "setWallet": "DOTENV_CONFIG_PATH=../../.env.cli NODE_OPTIONS='-r dotenv/config' ts-node scripts/set-wallet.ts",
+    "build": "tsc"
+  },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",
     "@types/uuid": "^9.0.7",
     "axios": "^1.4.0",
     "command-line-args": "^5.2.1",
-    "dotenv": "^16.3.1",
     "hashi-vault-js": "^0.4.14",
-    "uuid": "^9.0.1",
-    "ts-node": "^10.9.1"
-  }
+    "ts-node": "^10.9.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1",
+    "typescript": "^5.1.3"
+  },
+  "files": [
+    "dist/**/*"
+  ]
 }

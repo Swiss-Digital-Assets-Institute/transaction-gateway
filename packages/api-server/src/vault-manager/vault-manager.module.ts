@@ -15,6 +15,7 @@ import { VaultManagerService } from './vault-manager.service';
           baseUrl: configService.get<string>('VAULT_API_URL'),
           timeout: 5000,
           proxy: false,
+          rootPath: '',
         });
       },
       inject: [ConfigService],

@@ -1,8 +1,8 @@
 import { AccountId, Client, PrivateKey, TransferTransaction } from '@hashgraph/sdk';
 import Vault from 'hashi-vault-js';
-import { executorWalletSecretKey, refillerWalletSecretKey } from '../api-server/src/constants';
-import { SecretAccountInfoData } from '../api-server/src/vault-manager/definitions';
-import { ConfigurationType } from './definitions';
+import { executorWalletSecretKey, refillerWalletSecretKey } from './constants';
+import { ConfigurationType, SecretAccountInfoData } from './definitions';
+const mount = '/secret';
 
 export async function main() {
   const config = await getConfig();
@@ -29,13 +29,17 @@ export async function getConfig(): Promise<ConfigurationType> {
     timeout: 5000,
     proxy: false,
   });
-  const loginResponse = await this.vault.loginWithAppRole(
+  const loginResponse = await vault.loginWithAppRole(
     process.env.VAULT_APP_ROLE_ID,
     process.env.VAULT_APP_ROLE_SECRET_ID,
   );
   const token = loginResponse.client_token;
-  const executorWalletInfo: SecretAccountInfoData = (await vault.readKVSecret(token, executorWalletSecretKey)).data;
-  const refillerWalletInfo: SecretAccountInfoData = (await vault.readKVSecret(token, refillerWalletSecretKey)).data;
+  const executorWalletInfo: SecretAccountInfoData = (
+    await vault.readKVSecret(token, executorWalletSecretKey, null, mount)
+  ).data;
+  const refillerWalletInfo: SecretAccountInfoData = (
+    await vault.readKVSecret(token, refillerWalletSecretKey, null, mount)
+  ).data;
   return {
     hashgraphNetwork: process.env.HASHGRAPH_NETWORK,
     executorAccountId: AccountId.fromString(executorWalletInfo.accountId),
@@ -63,3 +67,8 @@ export function getClient(config: ConfigurationType) {
   client.setOperator(config.refillerAccountId, config.refillerPrivateKey);
   return client;
 }
+
+main().then(() => {
+  console.log('Refill executed!');
+  process.exit(0);
+});

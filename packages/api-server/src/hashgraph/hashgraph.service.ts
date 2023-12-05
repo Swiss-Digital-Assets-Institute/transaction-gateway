@@ -1,13 +1,21 @@
-import { AccountId, Transaction, Client } from '@hashgraph/sdk';
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { AccountId, Transaction, Client, PublicKey, PrivateKey } from '@hashgraph/sdk';
+import { HttpException, HttpStatus, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { VaultManagerService } from '../vault-manager/vault-manager.service';
 import { AccountIdResponse, ExecuteTransactionReturnType } from './definitions';
 
 @Injectable()
-export class HashgraphService {
+export class HashgraphService implements OnApplicationBootstrap {
   private readonly logger = new Logger(HashgraphService.name);
   private readonly MAX_RETRIES = 30;
+  private accountId: AccountId;
+  private publicKey: PublicKey;
+  private privateKey: PrivateKey;
 
-  constructor(private readonly client: Client, private readonly accountId: AccountId) {}
+  constructor(private client: Client, private readonly vaultManager: VaultManagerService) {}
+
+  async onApplicationBootstrap() {
+    await this.fetchSecrets();
+  }
 
   async executeTransaction(transactionString: string): Promise<ExecuteTransactionReturnType> {
     // Transaction deserialization
@@ -42,5 +50,13 @@ export class HashgraphService {
 
   async getOperatorAccountId(): Promise<AccountIdResponse> {
     return { accountId: this.accountId.toString() };
+  }
+
+  async fetchSecrets() {
+    const secretAccountInfoData = await this.vaultManager.getAccountInfoSecret();
+    this.accountId = secretAccountInfoData.accountId;
+    this.publicKey = secretAccountInfoData.publicKey;
+    this.privateKey = secretAccountInfoData.privateKey;
+    this.client = this.client.setOperator(this.accountId, this.privateKey);
   }
 }
