@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MockType, hashgraphServiceMockFactory } from '../../test/test.mocker';
+import { ApiKeyGuard } from '../api-key/api-key.guard';
 import { HashgraphController } from './hashgraph.controller';
 import { HashgraphService } from './hashgraph.service';
 
@@ -11,7 +12,10 @@ describe('HashgraphController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HashgraphController],
       providers: [{ provide: HashgraphService, useFactory: hashgraphServiceMockFactory }],
-    }).compile();
+    })
+      .overrideGuard(ApiKeyGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<HashgraphController>(HashgraphController);
     hashgraphService = module.get<MockType<HashgraphService>>(HashgraphService);

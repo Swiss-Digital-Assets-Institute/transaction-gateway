@@ -31,7 +31,7 @@ import { HashgraphController } from './hashgraph.controller';
       inject: [ConfigService], // this ensures the ConfigService is injected into the factory
     },
   ],
-  exports: [HashgraphService, Client],
-  controllers: [HashgraphController], // Ensure Client is exported if it's needed elsewhere
+  controllers: [HashgraphController],
+  exports: [HashgraphService, Client], // Ensure Client is exported if it's needed elsewhere
 })
 export class HashgraphModule {}

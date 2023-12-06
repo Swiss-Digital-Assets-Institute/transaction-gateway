@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Client, Transaction } from '@hashgraph/sdk';
 import { mockDeep } from 'jest-mock-extended';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { VaultManagerService } from '../vault-manager/vault-manager.service';
+import { MockType, vaultManagerMockFactory } from '../../test/test.mocker';
 import { HashgraphService } from './hashgraph.service';
 
 jest.mock('@hashgraph/sdk');
@@ -12,6 +14,7 @@ jest.mock('axios');
 
 describe('HashgraphService', () => {
   let service: HashgraphService;
+  let vaultManagerService: MockType<VaultManagerService>;
   let module: TestingModule;
   const client = mockDeep<Client>();
   const configServiceMock = {
@@ -31,6 +34,7 @@ describe('HashgraphService', () => {
           useValue: configServiceMock,
         },
         { provide: Client, useValue: client },
+        { provide: VaultManagerService, useFactory: vaultManagerMockFactory },
       ],
     })
       .useMocker(() => {
@@ -39,10 +43,19 @@ describe('HashgraphService', () => {
       .compile();
 
     service = module.get<HashgraphService>(HashgraphService);
+    vaultManagerService = module.get(VaultManagerService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('onApplicationBootstrap hook should fetch secrets', async () => {
+    service.fetchSecrets = jest.fn();
+    const app = module.createNestApplication();
+    await app.init();
+    await app.close();
+    expect(service.fetchSecrets).toHaveBeenCalled();
   });
 
   it('executeTransaction method should sign passed Transaction and execute it', async () => {
@@ -160,5 +173,35 @@ describe('HashgraphService', () => {
       error = err;
     }
     expect(error).toStrictEqual(expectedError);
+  });
+
+  it('getOperatorAccountId should return operator account id string', async () => {
+    const accIdMock = 'accIdMock';
+    // @ts-expect-error ignore types
+    service.accountId = { toString: () => accIdMock };
+
+    const response = await service.getOperatorAccountId();
+    expect(response).toStrictEqual({ accountId: accIdMock });
+  });
+
+  it('fetchSecrets should get secrets from vault and update service props', async () => {
+    const accountIdMock = 'accountIdMock';
+    const publicKeyMock = 'publicKeyMock';
+    const privateKeyMock = 'privateKeyMock';
+    const secretAccountInfoDataMock = {
+      accountId: accountIdMock,
+      publicKey: publicKeyMock,
+      privateKey: privateKeyMock,
+    };
+    const clientMock = {
+      setOperator: jest.fn().mockReturnValue(this),
+    };
+
+    vaultManagerService.getAccountInfoSecret.mockReturnValueOnce(secretAccountInfoDataMock);
+    // @ts-expect-error ignore private props
+    service.client = clientMock;
+    await service.fetchSecrets();
+    expect(vaultManagerService.getAccountInfoSecret).toHaveBeenCalled();
+    expect(clientMock.setOperator).toHaveBeenCalledWith(accountIdMock, privateKeyMock);
   });
 });

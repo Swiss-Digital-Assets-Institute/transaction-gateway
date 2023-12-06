@@ -5,7 +5,10 @@
   "scripts": {
     "launch": "DOTENV_CONFIG_PATH=../../.env.cron NODE_OPTIONS='-r dotenv/config' ts-node cron.ts",
     "launch:prod": "node dist/cron.js",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "jest --forceExit --detectOpenHandles",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",
