@@ -1,7 +1,8 @@
 import { AccountId, Transaction, Client, PublicKey, PrivateKey } from '@hashgraph/sdk';
 import { HttpException, HttpStatus, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { VaultManagerService } from '../vault-manager/vault-manager.service';
-import { AccountIdResponse, ExecuteTransactionReturnType } from './definitions';
+import { ExecuteTransactionResponseDto } from './dto/execute-transaction.response.dto';
+import { AccountIdResponseDto } from './dto/accounr-id.response.dto';
 
 @Injectable()
 export class HashgraphService implements OnApplicationBootstrap {
@@ -17,7 +18,7 @@ export class HashgraphService implements OnApplicationBootstrap {
     await this.fetchSecrets();
   }
 
-  async executeTransaction(transactionString: string): Promise<ExecuteTransactionReturnType> {
+  async executeTransaction(transactionString: string): Promise<ExecuteTransactionResponseDto> {
     // Transaction deserialization
     const receivedBytesTx = Buffer.from(transactionString, 'base64');
     const transaction = Transaction.fromBytes(receivedBytesTx);
@@ -48,7 +49,7 @@ export class HashgraphService implements OnApplicationBootstrap {
     throw new HttpException(`Transaction failed after ${this.MAX_RETRIES} attempts.`, HttpStatus.REQUEST_TIMEOUT);
   }
 
-  async getOperatorAccountId(): Promise<AccountIdResponse> {
+  async getOperatorAccountId(): Promise<AccountIdResponseDto> {
     return { accountId: this.accountId.toString() };
   }
 
