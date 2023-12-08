@@ -30,7 +30,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.1.0
-      - run: pnpm install --frozen-lockfile
+          cache: 'pnpm'
+      - run: pnpm install
       - run: pnpm lint
       - run: pnpm -r build
       - run: pnpm -r test:cov
