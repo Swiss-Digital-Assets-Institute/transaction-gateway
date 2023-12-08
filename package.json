@@ -60,7 +60,7 @@
   "lint-staged": {
     "*.ts": [
       "prettier --write",
-      "eslint"
+      "pnpm -r lint"
     ]
   },
   "pnpm": {

@@ -1,5 +1,6 @@
 import Vault from 'hashi-vault-js';
 import { executorWalletSecretKey, refillerWalletSecretKey } from './constants';
+
 import { VaultConfig } from './definitions';
 
 export async function getConfig(): Promise<Promise<VaultConfig>> {
