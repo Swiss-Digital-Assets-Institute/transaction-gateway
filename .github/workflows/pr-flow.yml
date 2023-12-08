@@ -32,6 +32,6 @@ jobs:
           node-version: 20.1.0
           cache: 'pnpm'
       - run: pnpm install
-      - run: pnpm lint
+      - run: pnpm -r lint
       - run: pnpm -r build
       - run: pnpm -r test:cov
