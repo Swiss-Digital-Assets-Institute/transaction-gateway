@@ -1,33 +1,12 @@
-import { AccountBalanceQuery, AccountId, Client, Hbar, PrivateKey, TransferTransaction } from '@hashgraph/sdk';
+import { AccountBalanceQuery, AccountId, Client, Hbar, PrivateKey } from '@hashgraph/sdk';
 import Vault from 'hashi-vault-js';
+import { BigNumber } from '@hashgraph/sdk/lib/Transfer'; // eslint-disable-line import/no-unresolved
 import { executorWalletSecretKey, refillerWalletSecretKey } from './constants';
 import { ConfigurationType, SecretAccountInfoData } from './definitions';
+
 const mount = '/secret';
 
-export async function main() {
-  const config = await getConfig();
-  const client = getClient(config);
-  const refillAmount = await getRefillAmount(config, client);
-  if (refillAmount.toString() === '0') {
-    console.log('Cron execution happened, no need to refill.');
-    return;
-  }
-
-  const transaction = new TransferTransaction()
-    .addHbarTransfer(config.refillerAccountId, -refillAmount)
-    .addHbarTransfer(config.executorAccountId, refillAmount)
-    .freezeWith(client);
-  const signTx = await transaction.sign(config.refillerPrivateKey);
-  const txResponse = await signTx.execute(client);
-  const receipt = await txResponse.getReceipt(client);
-
-  //Obtain the transaction consensus status
-  const transactionStatus = receipt.status;
-  console.log('The transaction consensus status ' + transactionStatus.toString());
-  console.log(`Refill executed successfully. ${refillAmount.toString()} tokens transferred.`);
-}
-
-async function getRefillAmount(config: ConfigurationType, client: Client) {
+export async function getRefillAmount(config: ConfigurationType, client: Client): Promise<BigNumber> {
   const balance = await new AccountBalanceQuery().setAccountId(config.executorAccountId).execute(client);
   let refillAmount = new Hbar(0).toBigNumber();
   const hbarBalanceBN = balance.hbars.toBigNumber();
@@ -38,15 +17,15 @@ async function getRefillAmount(config: ConfigurationType, client: Client) {
   return refillAmount;
 }
 
-async function getConfig(): Promise<ConfigurationType> {
-  validateEnv();
-
+export async function getConfig(): Promise<ConfigurationType> {
   const vault = new Vault({
     https: true,
     baseUrl: process.env.VAULT_API_URL,
     timeout: 5000,
     proxy: false,
   });
+  const response = await vault.healthCheck({});
+  if (!response.initialized) throw new Error("Vault healthcheck hasn't passed.");
   const loginResponse = await vault.loginWithAppRole(
     process.env.VAULT_APP_ROLE_ID,
     process.env.VAULT_APP_ROLE_SECRET_ID,
@@ -68,7 +47,7 @@ async function getConfig(): Promise<ConfigurationType> {
   };
 }
 
-function validateEnv() {
+export function validateEnv() {
   const envArray = [
     process.env.VAULT_API_URL,
     process.env.VAULT_APP_ROLE_ID,
@@ -77,10 +56,11 @@ function validateEnv() {
     process.env.BALANCE_THRESHOLD,
     process.env.BALANCE_TARGET,
   ];
-  if (!envArray.some((value) => !!value)) throw new Error('Some of the env params are not specified. Aborting.');
+
+  if (envArray.some((value) => value)) throw new Error('Some of the env params are not specified. Aborting.');
 }
 
-function getClient(config: ConfigurationType) {
+export function getClient(config: ConfigurationType) {
   let client: Client;
   switch (config.hashgraphNetwork) {
     case 'mainnet':

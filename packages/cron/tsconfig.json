@@ -3,6 +3,6 @@
     "composite": true,
     "outDir": "./dist"
   },
-  "include": ["./**/*.ts"],
+  "include": ["src/**/*", "src/**/*.spec.ts", "test/**/*"],
   "extends": "../../tsconfig.json"
 }

@@ -6,3 +6,7 @@ export const hashgraphServiceMockFactory = () => ({
   executeTransaction: jest.fn(),
   getOperatorAccountId: jest.fn(),
 });
+
+export const vaultManagerMockFactory = () => ({
+  getAccountInfoSecret: jest.fn(),
+});
