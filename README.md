@@ -2,31 +2,28 @@
   <img src="images/THA_Logo.png" width="200" alt="Nest Logo" />
 </p>
 
-  <h3 align="center">Hashgraph Labs</p>
+  <h5 align="center">Hashgraph Labs</p>
+  <h3 align="center">Transaction Gateway</p>
 
 ## Description
 
-The boilerplate for NestJS applications which use Prisma ORM, includes mailing, hashgraph and user modules, docker for main server and for db, husky precommit hook, prettier & eslint configuration, API key guard. Project has CI/CD scripts for GH actions and 100% test coverage check in there.
+Monorepo that contains following Transaction Gateway packages: api-server, cli, cron and vault. The system provides automated and secure ways of storing of wallet keys, refilling wallet balances, signing and executing of transactions.
 
 ## Installation
 
 ```bash
+$ npm install -g pnpm
 $ pnpm install
 ```
 
 ## Running the app
 
-### Manual
+> **_NOTE:_** This flow must be done only the first time, after initialization everything can be started with `docker compose up`.
+> Each time vault is restarted it must be unsealed again, refer to [Unseal](#unseal) section. After vault is unsealed api-server and cron must be restarted with `docker-compose restart backend cron`.
 
-> **_NOTE:_** This flow must be redone each time the vault is restarted.
+### Env
 
-Before starting the app you would need to setup env variables. To do so first go to the root dir of monorepo and copy `.env.example` using this command:
-
-```bash
-$ cp .env.example .env
-```
-
-Copy other env files as well, but we will need them in further steps:
+Before starting the app you would need to setup env variables. To do so first go to the root dir of monorepo and copy all `.env.example*` using this commands:
 
 ```bash
 $ cp .env.api-server.example .env.api-server
@@ -34,7 +31,7 @@ $ cp .env.cli.example .env.cli
 $ cp .env.cron.example .env.cron
 ```
 
-Then fill out `VAULT_ROOT_TOKEN` variable value `.env` file. The value is the root key to the vault so in prod envs must be kept secure.
+### Vault
 
 After that launch docker daemon and run the vault container:
 
@@ -42,7 +39,45 @@ After that launch docker daemon and run the vault container:
 $ docker-compose up vault -d --build
 ```
 
-Go to vault container logs and you will see three sets of data for such `appRoleNames`: `executor`, `refiller`, `cli`. They will look similar to this:
+Get vault container logs:
+
+```bash
+$ docker logs vault
+```
+
+Find lines with `Unseal Key 1` and `Initial Root Token`, you will need these values in future:
+
+```
+Unseal Key 1: [value]
+Initial Root Token: [value]
+```
+
+### Unseal
+
+In next step we will unseal vault. To do so it is needed to execute following commands:
+
+```bash
+$ docker exec -it vault bash
+# inside container
+$ export VAULT_ADDR='http://0.0.0.0:8200';
+$ vault operator unseal
+# paste Unseal Key 1
+```
+
+and paste value you've copied in previous step. Now you should receive vault status message where we can spectate that it is unsealed.
+
+### App roles
+
+Upcoming commands will create all of the needed app roles and assign policies to them:
+
+```bash
+$ vault login
+# paste Initial Root Token
+$ sh docker/create-app-roles.sh
+$ exit
+```
+
+You can see three sets of data in logs for such `appRoleNames`: `executor`, `refiller`, `cli`. They looks similar to this:
 
 ```
 Success! Data written to: auth/approle/role/[appRoleName]
@@ -57,7 +92,7 @@ secret_id_num_uses    40
 secret_id_ttl         8h
 ```
 
-You need to take `role_id` and `secret_id` fields of each app role and use them to update env files correspondingly:
+You need to take `role_id` and `secret_id` fields of each `appRole` and use them to update env files correspondingly:
 
 ```
 executor -> .env.api-server
@@ -65,60 +100,38 @@ refiller -> .env.cron
 cli -> .env.cli
 ```
 
+### Wallets set up
+
 Next step will be setting up executor and refiller wallets in vault, to do so use next commands:
 
 ```bash
+# executor
 $ pnpm cli setWallet  --accountId [EXECUTOR_ACCOUNT_ID] --publicKey [EXECUTOR_PUBLIC_KEY] --privateKey [EXECUTOR_PRIVATE_KEY] --secretKey executorKeyPair
 
+# refiller
 $ pnpm cli setWallet  --accountId [REFILLER_ACCOUNT_ID] --publicKey [REFILLER_PUBLIC_KEY] --privateKey [REFILLER_PRIVATE_KEY] --secretKey refillerKeyPair
 ```
 
-Final step, starting up api server:
+> **_NOTE:_** Both `refiller` and `executor` must be _ED25519_ keys.
+
+### Launch
+
+Final step, starting up api server, cli and cron:
 
 ```bash
-$ docker-compose create backend --build
-$ docker compose start backend
+$ docker-compose up backend cli cron --build -d
 ```
 
-That's it, now you should be able to use tx gateway.
-
-### Automated
-
-Go to root directory and create a copy of env file:
-
-```bash
-$ cp .env.example .env
-```
-
-And fill out all variables inside
-
-After you have env set up now its time to run migrations against DB. Use [this](#db-migrations) commands to deal with it.
-
-```bash
-# development
-$ pnpm start
-
-# watch mode
-$ pnpm start:dev
-
-# production mode
-$ pnpm start:prod
-```
+That's it, now you should be able to use the Tx Gateway.
 
 ## Test
 
 ```bash
 # unit tests
-$ pnpm test
-
-# e2e tests
-$ pnpm test:e2e
+$ pnpm -r test
 
 # test coverage
-$ pnpm test:cov
-
-# test specific files in watch mode
-$ pnpm test:watch
+$ pnpm -r test:cov
 ```
 
 ## Linting and formatting
@@ -129,4 +142,10 @@ $ pnpm lint
 
 # for formatting
 $ pnpm format
+```
+
+## Build
+
+```bash
+$ pnpm -r build
 ```

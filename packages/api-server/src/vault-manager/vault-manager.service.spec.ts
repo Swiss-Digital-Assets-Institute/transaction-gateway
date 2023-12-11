@@ -49,28 +49,18 @@ describe('VaultManagerService', () => {
 
   it('onModuleInit should call authenticate app against vault', async () => {
     const onModuleInitSpy = jest.spyOn(service, 'onModuleInit');
-    const adminAuthSpy = jest.spyOn(service, 'adminAuth').mockImplementation(async () => {
-      return;
-    });
     const authSpy = jest.spyOn(service, 'auth').mockImplementation(async () => {
       return;
     });
     vaultMock.healthCheck.mockReturnValue({ initialized: true });
     await module.init();
     expect(onModuleInitSpy).toHaveBeenCalled();
-    expect(adminAuthSpy).toHaveBeenCalled();
     expect(authSpy).toHaveBeenCalled();
     expect(vaultMock.healthCheck).toHaveBeenCalled();
   });
 
   it('onModuleInit should fail because of failed healthcheck', async () => {
     const onModuleInitSpy = jest.spyOn(service, 'onModuleInit');
-    const adminAuthSpy = jest.spyOn(service, 'adminAuth').mockImplementation(async () => {
-      return;
-    });
-    const authSpy = jest.spyOn(service, 'auth').mockImplementation(async () => {
-      return;
-    });
     vaultMock.healthCheck.mockReturnValue({ initialized: false });
     let error;
     try {
@@ -79,16 +69,8 @@ describe('VaultManagerService', () => {
       error = err;
     }
     expect(onModuleInitSpy).toHaveBeenCalled();
-    expect(adminAuthSpy).toHaveBeenCalled();
-    expect(authSpy).toHaveBeenCalled();
     expect(vaultMock.healthCheck).toHaveBeenCalled();
     expect(error).toStrictEqual(new Error("Vault healthcheck hasn't passed."));
-  });
-
-  it('adminAuth method should generate app role secret id', async () => {
-    vaultMock.generateAppRoleSecretId.mockReturnValue({ secret_id: '123' });
-    await service.adminAuth();
-    expect(vaultMock.generateAppRoleSecretId).toHaveBeenCalledWith(undefined, undefined);
   });
 
   it('auth method should login with app role', async () => {
@@ -115,7 +97,7 @@ describe('VaultManagerService', () => {
     const valueMock = 'value';
     vaultMock.readKVSecret.mockReturnValue({ data: { value: valueMock } });
     await service.getSecretValue(keyMock);
-    expect(vaultMock.readKVSecret).toHaveBeenCalledWith(undefined, keyMock);
+    expect(vaultMock.readKVSecret).toHaveBeenCalledWith(undefined, keyMock, 0, 'secret');
   });
 
   it('getDepartmentKeyPairSecret should call getSecret method and create instances of returned key pair ', async () => {

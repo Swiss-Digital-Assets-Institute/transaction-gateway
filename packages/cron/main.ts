@@ -1,4 +1,4 @@
-import { AccountId, Client, PrivateKey, TransferTransaction } from '@hashgraph/sdk';
+import { AccountBalanceQuery, AccountId, Client, Hbar, PrivateKey, TransferTransaction } from '@hashgraph/sdk';
 import Vault from 'hashi-vault-js';
 import { executorWalletSecretKey, refillerWalletSecretKey } from './constants';
 import { ConfigurationType, SecretAccountInfoData } from './definitions';
@@ -7,10 +7,15 @@ const mount = '/secret';
 export async function main() {
   const config = await getConfig();
   const client = getClient(config);
+  const refillAmount = await getRefillAmount(config, client);
+  if (refillAmount.toString() === '0') {
+    console.log('Cron execution happened, no need to refill.');
+    return;
+  }
 
   const transaction = new TransferTransaction()
-    .addHbarTransfer(config.refillerAccountId, -config.hbarAmount)
-    .addHbarTransfer(config.executorAccountId, config.hbarAmount)
+    .addHbarTransfer(config.refillerAccountId, -refillAmount)
+    .addHbarTransfer(config.executorAccountId, refillAmount)
     .freezeWith(client);
   const signTx = await transaction.sign(config.refillerPrivateKey);
   const txResponse = await signTx.execute(client);
@@ -18,11 +23,24 @@ export async function main() {
 
   //Obtain the transaction consensus status
   const transactionStatus = receipt.status;
-
   console.log('The transaction consensus status ' + transactionStatus.toString());
+  console.log(`Refill executed successfully. ${refillAmount.toString()} tokens transferred.`);
 }
 
-export async function getConfig(): Promise<ConfigurationType> {
+async function getRefillAmount(config: ConfigurationType, client: Client) {
+  const balance = await new AccountBalanceQuery().setAccountId(config.executorAccountId).execute(client);
+  let refillAmount = new Hbar(0).toBigNumber();
+  const hbarBalanceBN = balance.hbars.toBigNumber();
+  const balanceThresholdBN = new Hbar(config.balanceThreshold).toBigNumber();
+  const balanceTargetBN = new Hbar(config.balanceTarget).toBigNumber();
+
+  if (hbarBalanceBN.comparedTo(balanceThresholdBN) <= 0) refillAmount = balanceTargetBN.minus(hbarBalanceBN);
+  return refillAmount;
+}
+
+async function getConfig(): Promise<ConfigurationType> {
+  validateEnv();
+
   const vault = new Vault({
     https: true,
     baseUrl: process.env.VAULT_API_URL,
@@ -45,11 +63,24 @@ export async function getConfig(): Promise<ConfigurationType> {
     executorAccountId: AccountId.fromString(executorWalletInfo.accountId),
     refillerAccountId: AccountId.fromString(refillerWalletInfo.accountId),
     refillerPrivateKey: PrivateKey.fromStringED25519(refillerWalletInfo.privateKey),
-    hbarAmount: +process.env.REFILL_AMOUNT,
+    balanceThreshold: +process.env.BALANCE_THRESHOLD,
+    balanceTarget: +process.env.BALANCE_TARGET,
   };
 }
 
-export function getClient(config: ConfigurationType) {
+function validateEnv() {
+  const envArray = [
+    process.env.VAULT_API_URL,
+    process.env.VAULT_APP_ROLE_ID,
+    process.env.VAULT_APP_ROLE_SECRET_ID,
+    process.env.HASHGRAPH_NETWORK,
+    process.env.BALANCE_THRESHOLD,
+    process.env.BALANCE_TARGET,
+  ];
+  if (!envArray.some((value) => !!value)) throw new Error('Some of the env params are not specified. Aborting.');
+}
+
+function getClient(config: ConfigurationType) {
   let client: Client;
   switch (config.hashgraphNetwork) {
     case 'mainnet':
@@ -67,8 +98,3 @@ export function getClient(config: ConfigurationType) {
   client.setOperator(config.refillerAccountId, config.refillerPrivateKey);
   return client;
 }
-
-main().then(() => {
-  console.log('Refill executed!');
-  process.exit(0);
-});
