@@ -1,4 +1,4 @@
-name: Build and push Docker image
+name: Build and push Docker images
 on:
   push:
     branches:
@@ -13,7 +13,7 @@ env:
   VAULT_IMAGE_NAME: ${{ github.repository }}/vault
 
 jobs:
-  build-and-push-image:
+  build-and-push-images:
     runs-on: ubuntu-latest
 
     permissions:
@@ -57,7 +57,8 @@ jobs:
       - name: Build and push API Server Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: ./docker/Dockerfile
+          context: .
+          file: ./docker/Dockerfile
           push: true
           target: backend
           tags: ${{ steps.meta-api-server.outputs.tags }}
@@ -66,7 +67,8 @@ jobs:
       - name: Build and push Cron Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: ./docker/Dockerfile
+          context: .
+          file: ./docker/Dockerfile
           push: true
           target: cron
           tags: ${{ steps.meta-cron.outputs.tags }}
@@ -75,7 +77,8 @@ jobs:
       - name: Build and push CLI Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: ./docker/Dockerfile
+          context: .
+          file: ./docker/Dockerfile
           push: true
           target: cli
           tags: ${{ steps.meta-cli.outputs.tags }}
@@ -84,7 +87,8 @@ jobs:
       - name: Build and push Vault Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: ./docker/vault.Dockerfile
+          context: .
+          file: ./docker/vault.Dockerfile
           push: true
           tags: ${{ steps.meta-vault.outputs.tags }}
           labels: ${{ steps.meta-vault.outputs.labels }}
