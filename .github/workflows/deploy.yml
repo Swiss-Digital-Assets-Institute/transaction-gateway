@@ -5,7 +5,7 @@ on:
       - main
       - feature/cd
 
- env:
+env:
   REGISTRY: ghcr.io
   API_SERVER_IMAGE_NAME: ${{ github.repository }}/api-server
   CRON_IMAGE_NAME: ${{ github.repository }}/cron
