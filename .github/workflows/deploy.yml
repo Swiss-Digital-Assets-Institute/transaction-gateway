@@ -57,7 +57,7 @@ jobs:
       - name: Build and push API Server Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: .
+          context: ./docker/Dockerfile
           push: true
           target: backend
           tags: ${{ steps.meta-api-server.outputs.tags }}
@@ -66,7 +66,7 @@ jobs:
       - name: Build and push Cron Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: .
+          context: ./docker/Dockerfile
           push: true
           target: cron
           tags: ${{ steps.meta-cron.outputs.tags }}
