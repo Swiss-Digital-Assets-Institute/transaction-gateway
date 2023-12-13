@@ -4,7 +4,7 @@ import { ApiKeyGuard } from '../api-key/api-key.guard';
 import { HashgraphService } from './hashgraph.service';
 import { ExecuteTransactionDto } from './dto/execute-transaction.dto';
 import { ExecuteTransactionResponseDto } from './dto/execute-transaction.response.dto';
-import { AccountIdResponseDto } from './dto/accounr-id.response.dto';
+import { AccountIdResponseDto } from './dto/account-id.response.dto';
 
 @Controller('transaction')
 @ApiTags('transaction')
