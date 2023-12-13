@@ -7,19 +7,6 @@ jobs:
   lint_and_test:
     runs-on: ubuntu-latest
     environment: development
-    # env:
-    #   CODERBYTE_API_URL: ${{ secrets.CODERBYTE_API_URL }}
-    #   CODERBYTE_API_KEY: ${{ secrets.CODERBYTE_API_KEY }}
-    #   SMTP_LOGIN: ${{ secrets.SMTP_LOGIN }}
-    #   SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-    #   SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-    #   HASHGRAPH_TOPIC: ${{ secrets.HASHGRAPH_TOPIC }}
-    #   HASHGRAPH_ACCOUNT_ID: ${{ secrets.HASHGRAPH_ACCOUNT_ID }}
-    #   HASHGRAPH_PUBLIC_KEY: ${{ secrets.HASHGRAPH_PUBLIC_KEY }}
-    #   HASHGRAPH_PRIVATE_KEY: ${{ secrets.HASHGRAPH_PRIVATE_KEY }}
-    #   S3_CERT_BUCKET_NAME: ${{ secrets.S3_CERT_BUCKET_NAME }}
-    #   S3_METADATA_BUCKET_NAME: ${{ secrets.S3_METADATA_BUCKET_NAME }}
-    #   TOKEN_ID: ${{ secrets.TOKEN_ID }}
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v3
