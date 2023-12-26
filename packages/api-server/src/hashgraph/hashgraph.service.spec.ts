@@ -74,14 +74,16 @@ describe('HashgraphService', () => {
       execute: executeStub,
     } as unknown as Transaction;
     const txStringMock = 'txMock';
+    const expectedResult = { transactionReceipt: receiptMock, transactionResponse: executerResultMock };
 
     const txFromBytesStub = jest.spyOn(Transaction, 'fromBytes').mockReturnValue(transactionMock);
+    service.transformTransactionResult = jest.fn().mockReturnValue(expectedResult);
 
     const receipt = await service.executeTransaction(txStringMock);
     expect(executeStub).toHaveBeenCalledWith(client);
     expect(getReceiptStub).toHaveBeenCalledWith(client);
     expect(txFromBytesStub).toHaveBeenCalledWith(Buffer.from(txStringMock, 'base64'));
-    expect(receipt).toStrictEqual({ transactionReceipt: receiptMock, transactionResponse: executerResultMock });
+    expect(receipt).toStrictEqual(expectedResult);
   });
 
   it('executeTransaction method should have retry logic implemented for BUSY errors', async () => {
@@ -91,22 +93,26 @@ describe('HashgraphService', () => {
     const getReceiptStub = jest.fn(() => {
       return receiptMock;
     });
+    const executeResultMock = {
+      getReceipt: getReceiptStub,
+    };
     const executeStub = jest.fn(() => {
       if (retries < expectedRetries) {
         retries++;
         throw new Error('BUSY');
       }
-      return {
-        getReceipt: getReceiptStub,
-      };
+
+      return executeResultMock;
     });
     const transactionMock = {
       getReceipt: getReceiptStub,
       execute: executeStub,
     } as unknown as Transaction;
     const txStringMock = 'txMock';
+    const expectedResult = { transactionReceipt: receiptMock, transactionResponse: executeResultMock };
 
     const txFromBytesStub = jest.spyOn(Transaction, 'fromBytes').mockReturnValue(transactionMock);
+    service.transformTransactionResult = jest.fn().mockReturnValue(expectedResult);
 
     await service.executeTransaction(txStringMock);
     expect(txFromBytesStub).toHaveBeenCalledWith(Buffer.from(txStringMock, 'base64'));
@@ -203,5 +209,41 @@ describe('HashgraphService', () => {
     await service.fetchSecrets();
     expect(vaultManagerService.getAccountInfoSecret).toHaveBeenCalled();
     expect(clientMock.setOperator).toHaveBeenCalledWith(accountIdMock, privateKeyMock);
+  });
+
+  it('transformTransactionResult should transform tx result', async () => {
+    const txReceiptMock = {
+      accountId: 'accountIdMock',
+      status: { _code: 123 },
+      fileId: 'fileIdMock',
+      contractId: 'contractIdMock',
+      topicId: 'topicIdMock',
+      tokenId: 'tokenIdMock',
+      scheduleId: 'scheduleIdMock',
+      exchangeRate: 'exchangeRateMock',
+      topicSequenceNumber: 'topicSequenceNumberMock',
+      topicRunningHash: 'topicRunningHashMock',
+      totalSupply: 'totalSupplyMock',
+      scheduledTransactionId: 'scheduledTransactionIdMock',
+      serials: 'serialsMock',
+      duplicates: 'duplicatesMock',
+      children: 'childrenMock',
+    };
+    const txResponseJSONMock = {
+      nodeId: 'nodeId',
+      transactionHash: 'transactionHash',
+      transactionId: 'transactionId',
+    };
+    const txResponseMock = {
+      toJSON: () => {
+        return txResponseJSONMock;
+      },
+    };
+    // @ts-expect-error ignore types
+    const result = service.transformTransactionResult(txReceiptMock, txResponseMock);
+    expect(result).toStrictEqual({
+      transactionReceipt: { ...txReceiptMock, status: 123 },
+      transactionResponse: txResponseJSONMock,
+    });
   });
 });

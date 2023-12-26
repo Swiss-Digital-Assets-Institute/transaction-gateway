@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "launch": "DOTENV_CONFIG_PATH=../../.env.cron NODE_OPTIONS='-r dotenv/config' ts-node cron.ts",
-    "launch:prod": "node dist/cron.js",
+    "launch:dev": "DOTENV_CONFIG_PATH=../../.env.cron NODE_OPTIONS='-r dotenv/config' ts-node cron.ts",
+    "launch": "node dist/src/cron.js",
     "build": "tsc",
     "test": "jest --forceExit --detectOpenHandles",
     "test:watch": "jest --watch",

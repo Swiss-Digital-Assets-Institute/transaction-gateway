@@ -1,4 +1,12 @@
-import { AccountId, Transaction, Client, PublicKey, PrivateKey } from '@hashgraph/sdk';
+import {
+  AccountId,
+  Transaction,
+  Client,
+  PublicKey,
+  PrivateKey,
+  TransactionReceipt,
+  TransactionResponse,
+} from '@hashgraph/sdk';
 import { HttpException, HttpStatus, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { VaultManagerService } from '../vault-manager/vault-manager.service';
 import { ExecuteTransactionResponseDto } from './dto/execute-transaction.response.dto';
@@ -33,7 +41,7 @@ export class HashgraphService implements OnApplicationBootstrap {
         this.logger.debug(txResponse);
 
         // If the transaction succeeded, return the receipt
-        return { transactionReceipt: txReceipt, transactionResponse: txResponse };
+        return this.transformTransactionResult(txReceipt, txResponse);
       } catch (err) {
         // If the error is BUSY, retry the transaction
         if (err.toString().includes('BUSY')) {
@@ -59,5 +67,37 @@ export class HashgraphService implements OnApplicationBootstrap {
     this.publicKey = secretAccountInfoData.publicKey;
     this.privateKey = secretAccountInfoData.privateKey;
     this.client = this.client.setOperator(this.accountId, this.privateKey);
+  }
+
+  transformTransactionResult(
+    txReceipt: TransactionReceipt,
+    txResponse: TransactionResponse,
+  ): ExecuteTransactionResponseDto {
+    const txResponseJSON = txResponse.toJSON();
+
+    return {
+      transactionReceipt: {
+        accountId: txReceipt.accountId?.toString(),
+        status: txReceipt.status._code,
+        fileId: txReceipt.fileId?.toString(),
+        contractId: txReceipt.contractId?.toString(),
+        topicId: txReceipt.topicId?.toString(),
+        tokenId: txReceipt.tokenId?.toString(),
+        scheduleId: txReceipt.scheduleId?.toString(),
+        exchangeRate: txReceipt.exchangeRate?.toString(),
+        topicSequenceNumber: txReceipt.topicSequenceNumber?.toString(),
+        topicRunningHash: txReceipt.topicRunningHash?.toString(),
+        totalSupply: txReceipt.totalSupply?.toString(),
+        scheduledTransactionId: txReceipt.scheduledTransactionId?.toString(),
+        serials: txReceipt.serials,
+        duplicates: txReceipt.duplicates,
+        children: txReceipt.children,
+      },
+      transactionResponse: {
+        nodeId: txResponseJSON.nodeId,
+        transactionHash: txResponseJSON.transactionHash,
+        transactionId: txResponseJSON.transactionId,
+      },
+    };
   }
 }
