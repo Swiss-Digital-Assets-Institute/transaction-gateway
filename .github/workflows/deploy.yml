@@ -1,75 +1,93 @@
-name: Build Docker and deploy to Kubernetes
+name: Build and push Docker images
 on:
   push:
     branches:
       - main
-      - dev
+
+env:
+  REGISTRY: ghcr.io
+  API_SERVER_IMAGE_NAME: ${{ github.repository }}/api-server
+  CRON_IMAGE_NAME: ${{ github.repository }}/cron
+  CLI_IMAGE_NAME: ${{ github.repository }}/cli
+  VAULT_IMAGE_NAME: ${{ github.repository }}/vault
 
 jobs:
-  deploy:
+  build-and-push-images:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref_name == 'main' && 'production' || 'development' }}
-    env:
-      SERVICE: backend
-      APP_NAME: certification-backend
-      REGISTRY: 458845629758.dkr.ecr.eu-central-2.amazonaws.com/
-      ENVIRONMENT: ${{ vars.ENVIRONMENT }}
-      K8S_VERSION: v1.27.0
-      DOCKER_BUILDKIT: 1
+
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Declare variables
-        id: vars
-        shell: bash
-        run: |
-          echo "version=$(jq -r '.version' package.json)" >> "$GITHUB_OUTPUT"
-          echo "IMAGE_TAG=${{ env.ENVIRONMENT }}-${GITHUB_SHA::7}-${{ github.run_number }}" >> "$GITHUB_ENV"
-          echo "DOCKER_IMAGE=${{ env.REGISTRY }}${{ env.APP_NAME }}-${{ env.SERVICE }}" >> "$GITHUB_ENV"
-
-      - name: Build containers
-        run: docker compose -f docker-compose.yml build --pull
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Push image
-        run: docker compose -f docker-compose.yml push
-
-      - name: Generate manifests
-        env:
-          VAULT_ROLE_ID: ${{ secrets.VAULT_ROLE_ID }}
-          VAULT_SECRET_ID: ${{ secrets.VAULT_SECRET_ID }}
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-        run: >-
-            mkdir -p out && $GITHUB_WORKSPACE/deploy/pelm.py
-            --app-name ${{ env.APP_NAME }} 
-            --services ${{ env.SERVICE }} 
-            --env ${{ env.ENVIRONMENT }} 
-            --registry ${{ env.REGISTRY }} 
-            --image-tag ${{ env.IMAGE_TAG }} 
-            --datadog ${{ steps.vars.outputs.version }}
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
+      - name: Extract API Server metadata (tags, labels) for Docker
+        id: meta-api-server
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          version: ${{ env.K8S_VERSION }}
+          images: ${{ env.REGISTRY }}/${{ env.API_SERVER_IMAGE_NAME }}
 
-      - name: Set K8S context
-        uses: azure/k8s-set-context@v3
+      - name: Extract Cron metadata (tags, labels) for Docker
+        id: meta-cron
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          method: service-account
-          k8s-url: ${{ secrets.EKS_ENDPOINT }}
-          k8s-secret: ${{ secrets.EKS_SA_SECRET }}
+          images: ${{ env.REGISTRY }}/${{ env.CRON_IMAGE_NAME }}
 
-      - name: Deploy to Kubernetes
-        run: kubectl apply -f $GITHUB_WORKSPACE/out
+      - name: Extract CLI metadata (tags, labels) for Docker
+        id: meta-cli
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.CLI_IMAGE_NAME }}
+
+      - name: Extract Vault metadata (tags, labels) for Docker
+        id: meta-vault
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.VAULT_IMAGE_NAME }}
+
+      - name: Build and push API Server Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          target: backend
+          tags: ${{ steps.meta-api-server.outputs.tags }}
+          labels: ${{ steps.meta-api-server.outputs.labels }}
+
+      - name: Build and push Cron Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          target: cron
+          tags: ${{ steps.meta-cron.outputs.tags }}
+          labels: ${{ steps.meta-cron.outputs.labels }}
+
+      - name: Build and push CLI Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          target: cli
+          tags: ${{ steps.meta-cli.outputs.tags }}
+          labels: ${{ steps.meta-cli.outputs.labels }}
+
+      - name: Build and push Vault Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          file: ./docker/vault.Dockerfile
+          push: true
+          tags: ${{ steps.meta-vault.outputs.tags }}
+          labels: ${{ steps.meta-vault.outputs.labels }}

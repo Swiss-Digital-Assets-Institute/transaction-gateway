@@ -2,7 +2,7 @@ import { AccountId, Transaction, Client, PublicKey, PrivateKey } from '@hashgrap
 import { HttpException, HttpStatus, Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { VaultManagerService } from '../vault-manager/vault-manager.service';
 import { ExecuteTransactionResponseDto } from './dto/execute-transaction.response.dto';
-import { AccountIdResponseDto } from './dto/accounr-id.response.dto';
+import { AccountIdResponseDto } from './dto/account-id.response.dto';
 
 @Injectable()
 export class HashgraphService implements OnApplicationBootstrap {
