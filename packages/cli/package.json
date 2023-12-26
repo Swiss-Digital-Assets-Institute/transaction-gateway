@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "setWallet": "DOTENV_CONFIG_PATH=../../.env.cli NODE_OPTIONS='-r dotenv/config' ts-node src/main.ts",
+    "setWallet:dev": "DOTENV_CONFIG_PATH=../../.env.cli NODE_OPTIONS='-r dotenv/config' ts-node src/main.ts",
+    "setWallet": "node dist/src/main.js",
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
