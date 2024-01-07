@@ -56,6 +56,7 @@ export function validateEnv() {
     process.env.BALANCE_THRESHOLD,
     process.env.BALANCE_TARGET,
   ];
+  console.log(envArray);
 
   if (envArray.some((value) => !value)) throw new Error('Some of the env params are not specified. Aborting.');
 }
