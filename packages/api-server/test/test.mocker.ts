@@ -10,3 +10,15 @@ export const hashgraphServiceMockFactory = () => ({
 export const vaultManagerMockFactory = () => ({
   getAccountInfoSecret: jest.fn(),
 });
+
+export const healthCheckServiceMockFactory = () => ({
+  check: jest.fn(),
+});
+
+export const httpHealthIndicatorMockFactory = () => ({
+  pingCheck: jest.fn(),
+});
+export const configServiceMockFactory = () => ({
+  get: jest.fn(),
+  getOrThrow: jest.fn(),
+});

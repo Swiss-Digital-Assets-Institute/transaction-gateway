@@ -81,12 +81,12 @@ describe('Functions', () => {
       balanceThreshold: +BALANCE_THRESHOLD_MOCK,
       balanceTarget: +BALANCE_TARGET_MOCK,
     });
-    process.env.VAULT_API_URL = undefined;
-    process.env.VAULT_APP_ROLE_ID = undefined;
-    process.env.VAULT_APP_ROLE_SECRET_ID = undefined;
-    process.env.BALANCE_THRESHOLD = undefined;
-    process.env.BALANCE_TARGET = undefined;
-    process.env.HASHGRAPH_NETWORK = undefined;
+    delete process.env.VAULT_API_URL;
+    delete process.env.VAULT_APP_ROLE_ID;
+    delete process.env.VAULT_APP_ROLE_SECRET_ID;
+    delete process.env.BALANCE_THRESHOLD;
+    delete process.env.BALANCE_TARGET;
+    delete process.env.HASHGRAPH_NETWORK;
   });
 
   it("getConfig should fail because vault healthcheck hasn't passed", async () => {
