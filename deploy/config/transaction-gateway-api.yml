@@ -1,0 +1,30 @@
+common: &common
+  name: transaction-gateway-api
+  serviceSpecificSecret: false
+  port:
+    source: 3000
+    target: 3000
+    name: transaction-gateway-api
+
+  resources:
+    requests:
+      cpu: '500m'
+      memory: 1Gi
+    limits:
+      cpu: '500m'
+      memory: 1Gi
+
+dev:
+  <<: *common
+  secretLocation: env-secret
+  secretKey: transactionGatewayAPI
+  imageName: transaction-gateway/api-server
+  tag: dev
+  digest: null
+  kubeNamespace: dev
+
+prod:
+  <<: *common
+  secretLocation: env-secret
+  secretKey: transactionGatewayAPI
+  kubeNamespace: prod
