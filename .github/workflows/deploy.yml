@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - dev
+      - feature/new-cd
 
 env:
   APP_NAME: transaction-gateway
@@ -20,6 +21,8 @@ jobs:
       name: ${{ github.ref_name == 'main' && 'production' || 'development' }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - run: |
           echo "DOCKER_TAG=${{ vars.ENVIRONMENT }}-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
           echo "DOCKER_IMAGE_BASE=${{ vars.ECR_REGISTRY }}${{ env.APP_NAME }}" >> "${GITHUB_ENV}"
