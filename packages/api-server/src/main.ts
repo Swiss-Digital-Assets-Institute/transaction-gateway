@@ -9,8 +9,8 @@ async function bootstrap() {
   app.setGlobalPrefix('v1');
 
   const config = new DocumentBuilder()
-    .setTitle('The Hashgraph Association - Certification Service')
-    .setDescription('A Certification backend service to issue and validate certificates')
+    .setTitle('The Hashgraph Group - Transaction Gateway')
+    .setDescription('Transaction Gateway API server')
     .setVersion('0.1')
     .addSecurity('apiKey', { type: 'apiKey', name: 'Authorization', in: 'header' })
     .build();
