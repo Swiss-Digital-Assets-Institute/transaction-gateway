@@ -2,46 +2,22 @@ version: '3.7'
 services:
   backend:
     container_name: backend
+    image: ${DOCKER_IMAGE_BASE:-transaction-gateway}-api:${DOCKER_TAG:-latest}
     build:
       context: ./
       target: backend
       dockerfile: ./docker/Dockerfile
-    env_file:
-      - ./.env.api-server
-    depends_on:
-      - vault
-
-  vault:
-    build:
-      dockerfile: ./docker/vault.Dockerfile
-    ports:
-      - 8200:8200
-    container_name: vault
-    volumes:
-      - ./docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
-      - ./docker/create-app-roles.sh:/docker/create-app-roles.sh
-      - ./packages/vault/policies/:/policies/
-      - ./packages/vault/config.hcl:/config.hcl
-    privileged: true
-    entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']
-
   cron:
     container_name: cron
+    image: ${DOCKER_IMAGE_BASE:-transaction-gateway}-cron:${DOCKER_TAG:-latest}
     build:
       context: ./
       target: cron
       dockerfile: ./docker/Dockerfile
-    env_file:
-      - ./.env.cron
-    depends_on:
-      - vault
   cli:
     container_name: cli
+    image: ${DOCKER_IMAGE_BASE:-transaction-gateway}-cli:${DOCKER_TAG:-latest}
     build:
       context: ./
       target: cli
       dockerfile: ./docker/Dockerfile
-    env_file:
-      - ./.env.cli
-    depends_on:
-      - vault

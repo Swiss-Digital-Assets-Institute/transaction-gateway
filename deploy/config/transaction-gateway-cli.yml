@@ -1,0 +1,22 @@
+common: &common
+  name: transaction-gateway-cli
+  serviceSpecificSecret: false
+  resources:
+    limits:
+      cpu: '500m'
+      memory: 1Gi
+
+dev:
+  <<: *common
+  secretLocation: env-secret
+  secretKey: transactionGatewayCLI
+  imageName: transaction-gateway/cli
+  tag: dev
+  digest: null
+  kubeNamespace: dev
+
+prod:
+  <<: *common
+  secretLocation: env-secret
+  secretKey: transactionGatewayAPI
+  kubeNamespace: prod

@@ -6,11 +6,7 @@ on:
       - dev
 
 env:
-  REGISTRY: ghcr.io
-  API_SERVER_IMAGE_NAME: ${{ github.repository }}/api-server
-  CRON_IMAGE_NAME: ${{ github.repository }}/cron
-  CLI_IMAGE_NAME: ${{ github.repository }}/cli
-  VAULT_IMAGE_NAME: ${{ github.repository }}/vault
+  APP_NAME: transaction-gateway
 
 jobs:
   build-and-push-images:
@@ -20,75 +16,28 @@ jobs:
       contents: read
       packages: write
 
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Log in to the Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          echo "DOCKER_TAG=${{ vars.ENVIRONMENT }}-${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          echo "DOCKER_IMAGE_BASE=${{ vars.ECR_REGISTRY }}${{ env.APP_NAME }}" >> "${GITHUB_ENV}"
 
-      - name: Extract API Server metadata (tags, labels) for Docker
-        id: meta-api-server
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.API_SERVER_IMAGE_NAME }}
+      - name: Build containers
+        run: docker compose -f docker-compose.yml build --pull
 
-      - name: Extract Cron metadata (tags, labels) for Docker
-        id: meta-cron
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          images: ${{ env.REGISTRY }}/${{ env.CRON_IMAGE_NAME }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Extract CLI metadata (tags, labels) for Docker
-        id: meta-cli
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.CLI_IMAGE_NAME }}
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Extract Vault metadata (tags, labels) for Docker
-        id: meta-vault
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.VAULT_IMAGE_NAME }}
-
-      - name: Build and push API Server Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: true
-          target: backend
-          tags: ${{ steps.meta-api-server.outputs.tags }}
-          labels: ${{ steps.meta-api-server.outputs.labels }}
-
-      - name: Build and push Cron Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: true
-          target: cron
-          tags: ${{ steps.meta-cron.outputs.tags }}
-          labels: ${{ steps.meta-cron.outputs.labels }}
-
-      - name: Build and push CLI Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          push: true
-          target: cli
-          tags: ${{ steps.meta-cli.outputs.tags }}
-          labels: ${{ steps.meta-cli.outputs.labels }}
-
-      - name: Build and push Vault Docker image
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-        with:
-          context: .
-          file: ./docker/vault.Dockerfile
-          push: true
-          tags: ${{ steps.meta-vault.outputs.tags }}
-          labels: ${{ steps.meta-vault.outputs.labels }}
+      - name: Push image
+        run: docker compose -f docker-compose.yml push

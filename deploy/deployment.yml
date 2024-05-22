@@ -1,0 +1,189 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-gateway-api
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transaction-gateway-api
+  template:
+    metadata:
+      labels:
+        app: transaction-gateway-api
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: transaction-gateway-api
+          image: ghcr.io/swiss-digital-assets-institute/transaction-gateway/api-server:dev
+          resources:
+            limits:
+              memory: '1024Mi'
+              cpu: '500m'
+          ports:
+            - containerPort: 3000
+          env:
+            - name: API_KEY
+              value: 'de364303-0d0e-401f-838a-61d451d10d3a'
+            - name: HASHGRAPH_MIRROR_NODE_URL
+              value: 'https://testnet.mirrornode.hedera.com'
+            - name: HASHGRAPH_NETWORK
+              value: 'testnet'
+            - name: VAULT_API_URL
+              value: 'http://vault:8200/v1'
+            - name: VAULT_APP_ROLE_ID
+              value: 'a7a32b9a-0430-0627-a89a-c128c0dd42e4'
+            - name: VAULT_APP_ROLE_SECRET_ID
+              value: '047a7b8d-a808-1112-06eb-fd49df435986'
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-gateway-cron
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transaction-gateway-cron
+  template:
+    metadata:
+      labels:
+        app: transaction-gateway-cron
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: transaction-gateway-cron
+          image: ghcr.io/swiss-digital-assets-institute/transaction-gateway/cron:dev@sha256:7e78be503ac100455ef30eb3cb68a31398f478a2cbe2f6fd26b27e360e0282db
+          # command: ["tail", "-f", "/dev/null"]
+          resources:
+            limits:
+              memory: '1024Mi'
+              cpu: '500m'
+          env:
+            - name: BALANCE_THRESHOLD
+              value: '500'
+            - name: BALANCE_TARGET
+              value: '1000'
+            - name: HASHGRAPH_NETWORK
+              value: 'testnet'
+            - name: VAULT_API_URL
+              value: 'http://vault:8200/v1'
+            - name: VAULT_APP_ROLE_ID
+              value: 'bd8a9768-aa99-2a04-2aeb-8073495bf368'
+            - name: VAULT_APP_ROLE_SECRET_ID
+              value: '5848edb7-affa-f999-ddce-4dd6dc5ecb21'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-gateway-cli
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transaction-gateway-cli
+  template:
+    metadata:
+      labels:
+        app: transaction-gateway-cli
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: transaction-gateway-cli
+          image: ghcr.io/swiss-digital-assets-institute/transaction-gateway/cli:dev
+          resources:
+            limits:
+              memory: '1024Mi'
+              cpu: '500m'
+          env:
+            - name: VAULT_API_URL
+              value: 'http://vault:8200/v1'
+            - name: VAULT_APP_ROLE_ID
+              value: 'eca21020-163f-626b-506d-a8301ce78ec7'
+            - name: VAULT_APP_ROLE_SECRET_ID
+              value: '60fa08cc-c5ed-ce4a-aadc-5f082ab5b987'
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notarization-api
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notarization-api
+  template:
+    metadata:
+      labels:
+        app: notarization-api
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: notarization-api
+          image: ghcr.io/swiss-digital-assets-institute/inveko-notarization-api:dev@sha256:f09f22e97122266eed30b63970c7964b6a3affe87884f7c3a7a44eaf47b28343
+          resources:
+            limits:
+              memory: '1024Mi'
+              cpu: '500m'
+          ports:
+            - containerPort: 3001
+          env:
+            - name: HASHGRAPH_TOPIC_ID
+              value: '0.0.7116107'
+            - name: HASHGRAPH_MIRROR_NODE_URL
+              value: 'https://testnet.mirrornode.hedera.com'
+            - name: HASHGRAPH_NETWORK
+              value: 'testnet'
+            - name: TX_GATEWAY_API_URL
+              value: 'http://transaction-gateway-api/v1'
+            - name: TX_GATEWAY_API_KEY
+              value: 'de364303-0d0e-401f-838a-61d451d10d3a'
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notarization-api
+  namespace: dev
+spec:
+  type: NodePort
+  selector:
+    app: notarization-api
+  ports:
+    - port: 80
+      targetPort: 3001
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transaction-gateway-api
+  namespace: dev
+spec:
+  type: NodePort
+  selector:
+    app: transaction-gateway-api
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: dev
+spec:
+  type: ExternalName
+  externalName: vault.vault.svc.cluster.local
+  ports:
+    - port: 8200

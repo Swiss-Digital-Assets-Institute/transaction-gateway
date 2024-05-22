@@ -5,12 +5,37 @@ services:
       - 3000:3000
     pull_policy: always
     tty: true
-    env_file: .env
     environment:
       - DEV=true
     volumes:
       - ./src:/app/src
       - ./dist:/dist
-
+    depends_on:
+      - vault
+    env_file:
+      - ./.env.api-server
+  vault:
+    build:
+      dockerfile: ./docker/vault.Dockerfile
+    ports:
+      - 8200:8200
+    container_name: vault
+    volumes:
+      - ./docker/vault-entrypoint.sh:/docker/vault-entrypoint.sh
+      - ./docker/create-app-roles.sh:/docker/create-app-roles.sh
+      - ./packages/vault/policies/:/policies/
+      - ./packages/vault/config.hcl:/config.hcl
+    privileged: true
+    entrypoint: ['/bin/bash', 'docker/vault-entrypoint.sh']
+  cron:
+    depends_on:
+      - vault
+    env_file:
+      - ./.env.cron
+  cli:
+    depends_on:
+      - vault
+    env_file:
+      - ./.env.cli
 volumes:
   db:

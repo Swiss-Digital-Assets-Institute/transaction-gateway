@@ -9,7 +9,10 @@
     "api-server": "pnpm --filter @transaction-gateway/api-server",
     "cron": "pnpm --filter @transaction-gateway/cron",
     "cli": "pnpm --filter @transaction-gateway/cli",
-    "docker:startup": "ts-node docker/startup.ts"
+    "docker:startup": "ts-node docker/startup.ts",
+    "create-accounts:hollow": "ts-node script/hollow-account-creation/create-accounts-aliases.ts",
+    "fetch-accounts-info:hollow": "ts-node script/hollow-account-creation/fetch-accounts-info.ts",
+    "create-accounts": "ts-node script/regular-creation/create-accounts.ts"
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.31.0",

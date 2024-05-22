@@ -1,0 +1,34 @@
+common: &common
+  name: notarization-api
+  serviceSpecificSecret: false
+  annotations:
+    cloud.google.com/backend-config: '{"default":"notarization-api-backend-config"}'
+    cloud.google.com/neg: '{"ingress": true}'
+  port:
+    source: 3001
+    target: 3001
+    name: notarization-api
+
+  resources:
+    requests:
+      cpu: '500m'
+      memory: 1Gi
+    limits:
+      cpu: '500m'
+      memory: 1Gi
+
+dev:
+  <<: *common
+  secretLocation: env-secret
+  secretKey: notarizationAPI
+  imageName: inveko-notarization-api
+  tag: dev
+  digest: null
+  # digest: sha256:f09f22e97122266eed30b63970c7964b6a3affe87884f7c3a7a44eaf47b28343
+  kubeNamespace: dev
+
+prod:
+  <<: *common
+  secretLocation: env-secret
+  secretKey: notarizationAPI
+  kubeNamespace: prod
