@@ -1,277 +1,195 @@
 name: DEV Build/Push/Deploy
 
+# on:
+#   workflow_dispatch:
+
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - DEVOPS-6/dev
 
 jobs:
 
-  docker_build_and_push_api:
-    runs-on: ubuntu-latest
-    outputs:
-      docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
-      docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
+  # docker_build_and_push_api:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     APP: api
+  #   outputs:
+  #     docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
+  #     docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
 
-      - name: Prepare Outputs For Docker Images And Tags
-        id: docker-preparation
-        run: |
-          GIT_SHA=$(git rev-parse --short HEAD)
-          echo "::set-output name=docker_image_tag::${GIT_SHA}" 
-          echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-api"          
+  #     - name: Prepare Outputs For Docker Images And Tags
+  #       id: docker-preparation
+  #       run: |
+  #         GIT_SHA=$(git rev-parse --short HEAD)
+  #         echo "::set-output name=docker_image_tag::${GIT_SHA}" 
+  #         echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-${{ env.APP }}"          
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TEST }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEST }}
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TG }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TG }}
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Login To Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+  #     - name: Login To Amazon ECR
+  #       uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build And Push API
-        uses: docker/build-push-action@v5
-        with:
-          file: ./docker/Dockerfile.Api
-          push: true
-          tags: |
-            ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
+  #     - name: Build And Push API
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         file: ./docker/Dockerfile.Api
+  #         push: true
+  #         tags: |
+  #           ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
 
-  docker_build_and_push_cli:
-    runs-on: ubuntu-latest
-    outputs:
-      docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
-      docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
+  # docker_build_and_push_cli:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     APP: cli
+  #   outputs:
+  #     docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
+  #     docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
 
-      - name: Prepare Outputs For Docker Images And Tags
-        id: docker-preparation
-        run: |
-          GIT_SHA=$(git rev-parse --short HEAD)
-          echo "::set-output name=docker_image_tag::${GIT_SHA}" 
-          echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-cli"        
+  #     - name: Prepare Outputs For Docker Images And Tags
+  #       id: docker-preparation
+  #       run: |
+  #         GIT_SHA=$(git rev-parse --short HEAD)
+  #         echo "::set-output name=docker_image_tag::${GIT_SHA}" 
+  #         echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-${{ env.APP }}"        
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TEST }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEST }}
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TG }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TG }}
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Login To Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+  #     - name: Login To Amazon ECR
+  #       uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build And Push CLI
-        uses: docker/build-push-action@v5
-        with:
-          file: ./docker/Dockerfile.CLI
-          push: true
-          tags: |
-            ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
+  #     - name: Build And Push CLI
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         file: ./docker/Dockerfile.CLI
+  #         push: true
+  #         tags: |
+  #           ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
 
-  docker_build_and_push_cron:
-    runs-on: ubuntu-latest
-    outputs:
-      docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
-      docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
+  # docker_build_and_push_cron:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     APP: cron
+  #   outputs:
+  #     docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
+  #     docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v4
 
-      - name: Prepare Outputs For Docker Images And Tags
-        id: docker-preparation
-        run: |
-          GIT_SHA=$(git rev-parse --short HEAD)
-          echo "::set-output name=docker_image_tag::${GIT_SHA}" 
-          echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-cron"        
+  #     - name: Prepare Outputs For Docker Images And Tags
+  #       id: docker-preparation
+  #       run: |
+  #         GIT_SHA=$(git rev-parse --short HEAD)
+  #         echo "::set-output name=docker_image_tag::${GIT_SHA}" 
+  #         echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-${{ env.APP }}"        
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TEST }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEST }}
-          aws-region: ${{ vars.AWS_REGION }}
+  #     - name: Configure AWS Credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TG }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TG }}
+  #         aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Login To Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+  #     - name: Login To Amazon ECR
+  #       uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build And Push CRON
-        uses: docker/build-push-action@v5
-        with:
-          file: ./docker/Dockerfile.CRON
-          push: true
-          tags: |
-            ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
+  #     - name: Build And Push CRON
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         file: ./docker/Dockerfile.CRON
+  #         push: true
+  #         tags: |
+  #           ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
 
 
   helm_deploy_api:
+    environment:  
+      name: development
     env:
       APP: api
       DOCKER_IMAGE: ${{needs.docker_build_and_push_api.outputs.docker_image }}
       DOCKER_IMAGE_TAG: ${{needs.docker_build_and_push_api.outputs.docker_tag }}
-    needs:
-      - docker_build_and_push_api
-
+    # needs:
+    #   - docker_build_and_push_api
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch secrets from Vault
-        id: vault
-        uses: hashicorp/vault-action@v2
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            kv/data/transaction-gateway-${{ env.APP }} * | VAULTS_SECRETS_${{ env.APP }};
-
-      - name: Create Helm secret files
-        uses: ./.github/actions/create-helm-secret-files
+      - name: Template EKS Deploy
+        uses: ./.github/workflows/eks-helm-deploy-template.yml
         with:
           app: ${{ env.APP }}
-
-      - name: Setup Tailscale connection
-        uses: tailscale/github-action@v2
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: ${{ vars.TS_TAGS }}
-          version: ${{ vars.TS_VERSION }}
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: ${{ vars.K8S_VERSION }}
-
-      - name: Setup Kubernetes context
-        uses: azure/k8s-set-context@v3
-        with:
-          method: service-account
-          k8s-url: ${{ vars.EKS_ENDPOINT }}
-          k8s-secret: ${{ secrets.EKS_SA_SECRET }}
-
-      - name: Helm upgrade
-        uses: ./.github/actions/helm-upgrade
-        with:
-          app: ${{ env.APP }}
+          namespace: ${{ vars.NAMESPACE }}
           docker-image: ${{ env.DOCKER_IMAGE }}
           docker-image-tag: ${{ env.DOCKER_IMAGE_TAG }}
 
   helm_deploy_cron:
+    environment:  
+      name: development
     env:
       APP: cron
       DOCKER_IMAGE: ${{needs.docker_build_and_push_cron.outputs.docker_image }}
       DOCKER_IMAGE_TAG: ${{needs.docker_build_and_push_cron.outputs.docker_tag }}
-    needs:
-      - docker_build_and_push_cron
-
+    # needs:
+    #   - docker_build_and_push_cron
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch secrets from Vault
-        id: vault
-        uses: hashicorp/vault-action@v2
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            kv/data/transaction-gateway-${{ env.APP }} * | VAULTS_SECRETS_${{ env.APP }};
-
-      - name: Create Helm secret files
-        uses: ./.github/actions/create-helm-secret-files
+      - name: Template EKS Deploy
+        uses: ./.github/workflows/eks-helm-deploy-template.yml
         with:
           app: ${{ env.APP }}
-
-      - name: Setup Tailscale connection
-        uses: tailscale/github-action@v2
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: ${{ vars.TS_TAGS }}
-          version: ${{ vars.TS_VERSION }}
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: ${{ vars.K8S_VERSION }}
-
-      - name: Setup Kubernetes context
-        uses: azure/k8s-set-context@v3
-        with:
-          method: service-account
-          k8s-url: ${{ vars.EKS_ENDPOINT }}
-          k8s-secret: ${{ secrets.EKS_SA_SECRET }}
-
-      - name: Helm upgrade
-        uses: ./.github/actions/helm-upgrade
-        with:
-          app: ${{ env.APP }}
+          namespace: ${{ vars.NAMESPACE }}
           docker-image: ${{ env.DOCKER_IMAGE }}
           docker-image-tag: ${{ env.DOCKER_IMAGE_TAG }}
 
   helm_deploy_cli:
+    environment:  
+      name: development
     env:
       APP: cli
       DOCKER_IMAGE: ${{needs.docker_build_and_push_cli.outputs.docker_image }}
       DOCKER_IMAGE_TAG: ${{needs.docker_build_and_push_cli.outputs.docker_tag }}
-    needs:
-      - docker_build_and_push_cli
-
+    # needs:
+    #   - docker_build_and_push_cli
     runs-on: ubuntu-latest
+
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Fetch secrets from Vault
-        id: vault
-        uses: hashicorp/vault-action@v2
-        with:
-          url: ${{ secrets.VAULT_ADDR }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            kv/data/transaction-gateway-${{ env.APP }} * | VAULTS_SECRETS_${{ env.APP }};
-
-      - name: Create Helm secret files
-        uses: ./.github/actions/create-helm-secret-files
+      - name: Template EKS Deploy
+        uses: ./.github/workflows/eks-helm-deploy-template.yml
         with:
           app: ${{ env.APP }}
-
-      - name: Setup Tailscale connection
-        uses: tailscale/github-action@v2
-        with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: ${{ vars.TS_TAGS }}
-          version: ${{ vars.TS_VERSION }}
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: ${{ vars.K8S_VERSION }}
-
-      - name: Setup Kubernetes context
-        uses: azure/k8s-set-context@v3
-        with:
-          method: service-account
-          k8s-url: ${{ vars.EKS_ENDPOINT }}
-          k8s-secret: ${{ secrets.EKS_SA_SECRET }}
-
-      - name: Helm upgrade
-        uses: ./.github/actions/helm-upgrade
-        with:
-          app: ${{ env.APP }}
+          namespace: ${{ vars.NAMESPACE }}
           docker-image: ${{ env.DOCKER_IMAGE }}
           docker-image-tag: ${{ env.DOCKER_IMAGE_TAG }}
