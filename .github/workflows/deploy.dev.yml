@@ -1,0 +1,29 @@
+name: DEV Build/Push/Deploy
+
+on:
+  push:
+    branches:
+      - DEVOPS-7/dev
+      - DEVOPS-6/dev
+
+jobs:
+  docker_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+  docker_push:
+    needs: docker_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+  helm_deploy:
+    needs: docker_push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
