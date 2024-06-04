@@ -1,29 +1,84 @@
 name: DEV Build/Push/Deploy
 
 on:
-  push:
-    branches:
-      - DEVOPS-7/dev
-      - DEVOPS-6/dev
+  workflow_dispatch:
 
 jobs:
-  docker_build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-  docker_push:
-    needs: docker_build
+  docker_build_and_push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
   helm_deploy:
-    needs: docker_push
+    needs:
+      - docker_build_and_push
+    env:
+      DOCKER_IMAGE_API: ${{ needs.docker_build_and_push.outputs.docker_image_api }}
+      DOCKER_IMAGE_TAG_API: ${{ needs.docker_build_and_push.outputs.docker_build_tag_api }}
+      DOCKER_IMAGE_CRON: ${{ needs.docker_build_and_push.outputs.docker_image_cron }}
+      DOCKER_IMAGE_TAG_CRON: ${{ needs.docker_build_and_push.outputs.docker_build_tag_cron }}
+      DOCKER_IMAGE_CLI: ${{ needs.docker_build_and_push.docker_image_cli }}
+      DOCKER_IMAGE_TAG_CLI: ${{ needs.docker_build_and_push.docker_build_cli }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Fetch secrets from Vault
+        id: vault
+        uses: hashicorp/vault-action@v2
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          method: token
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            kv/data/transaction-gateway-api * | VAULTS_SECRETS_API;
+            kv/data/transaction-gateway-cron * | VAULTS_SECRETS_CRON;
+            kv/data/transaction-gateway-cli * | VAULTS_SECRETS_CLI;
+
+      - name: Create Helm secret files
+        run: |
+          for TYPE in API CRON CLI; do
+            SECRET_VAR="VAULTS_SECRETS_${TYPE}"
+            export SECRET_DATA=$(env | sed -n "s/^${SECRET_VAR}\(.*\)=\(.*\)/\1: \2/p")
+            yq e --null-input ".secrets = {\"transaction-gateway-${TYPE,,}-secret\": {\"data\": strenv(SECRET_DATA)}}" \
+            > "./chart/transaction-gateway-${TYPE,,}/transaction-gateway-${TYPE,,}-secret.yaml"
+          done
+
+      - name: Setup Tailscale connection
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: ${{ vars.TS_TAGS }}
+          version: ${{ vars.TS_VERSION }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ vars.K8S_VERSION }}
+
+      - name: Setup Kubernetes context
+        uses: azure/k8s-set-context@v3
+        with:
+          method: service-account
+          k8s-url: ${{ vars.EKS_ENDPOINT }}
+          k8s-secret: ${{ secrets.EKS_SA_SECRET }}
+
+      - name: Helm upgrade
+        run: |
+          declare -A images
+          images[api]=${{ env.DOCKER_IMAGE_API }}
+          images[cron]=${{ env.DOCKER_IMAGE_CRON }}
+          images[cli]=${{ env.DOCKER_IMAGE_CLI }}
+          declare -A tags
+          tags[api]=${{ env.DOCKER_IMAGE_TAG_API }}
+          tags[cron]=${{ env.DOCKER_IMAGE_TAG_CRON }}
+          tags[cli]=${{ env.DOCKER_IMAGE_TAG_CLI }}
+          for chart in api cron cli; do
+            helm upgrade -i $chart /chart/transaction-gateway-$chart --timeout=15m --wait --history-max=3 \
+            --namespace ${{ vars.NAMESPACE }} -f ./chart/transaction-gateway-$chart/transaction-gateway-$chart-secret.yaml \
+            --set defaultImage=${images[$chart]} \
+            --set defaultImageTag=${tags[$chart]}
+          done
