@@ -1,0 +1,21 @@
+name: 'Helm upgrade'
+description: 'A reusable action to Helm upgrade'
+inputs:
+  app:
+    description: 'e.g., api, cron, cli'
+    required: true
+  docker-image:
+    description: 'docker image name'
+    required: true
+  docker-image-tag:
+    description: 'docker image tag'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        helm upgrade -i ${{ inputs.app }} /chart/transaction-gateway-${{ inputs.app }} --timeout=15m --wait --history-max=3 \
+        --namespace ${{ vars.NAMESPACE }} -f ./chart/transaction-gateway-${{ inputs.app }}transaction-gateway-${{ inputs.app }}-secret.yaml \
+        --set defaultImage=${{ inputs.docker-image }} \
+        --set defaultImageTag=${{ inputs.docker-image-tag }}
+      shell: bash
