@@ -4,11 +4,112 @@ on:
   workflow_dispatch:
 
 jobs:
-  docker_build_and_push:
+
+  docker_build_and_push_api:
     runs-on: ubuntu-latest
+    outputs:
+      docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
+      docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
+
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Prepare Outputs For Docker Images And Tags
+        id: docker-preparation
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          echo "::set-output name=docker_image_tag::${GIT_SHA}" 
+          echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-api"          
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TEST }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEST }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login To Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build And Push API
+        uses: docker/build-push-action@v5
+        with:
+          file: ./docker/Dockerfile.Api
+          push: true
+          tags: |
+            ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
+
+  docker_build_and_push_cli:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
+      docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Outputs For Docker Images And Tags
+        id: docker-preparation
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          echo "::set-output name=docker_image_tag::${GIT_SHA}" 
+          echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-cli"        
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TEST }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEST }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login To Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build And Push CLI
+        uses: docker/build-push-action@v5
+        with:
+          file: ./docker/Dockerfile.CLI
+          push: true
+          tags: |
+            ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
+
+  docker_build_and_push_cron:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_image: ${{ steps.docker-preparation.outputs.docker_image }}
+      docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Outputs For Docker Images And Tags
+        id: docker-preparation
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          echo "::set-output name=docker_image_tag::${GIT_SHA}" 
+          echo "::set-output name=docker_image::${{ vars.ECR_REGISTRY }}dev-transaction-gateway-cron"        
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TEST }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEST }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login To Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build And Push CRON
+        uses: docker/build-push-action@v5
+        with:
+          file: ./docker/Dockerfile.CRON
+          push: true
+          tags: |
+            ${{ steps.docker-preparation.outputs.docker_image }}:${{ steps.docker-preparation.outputs.docker_image_tag }}
+
 
   helm_deploy_api:
     env:
