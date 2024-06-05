@@ -1,0 +1,56 @@
+name: DEV Build/Push/Deploy
+
+# on:
+#   workflow_dispatch:
+
+on:
+  push:
+    branches:
+      - dev 
+
+jobs:
+
+  api:
+    uses: ./.github/workflows/build-push-deploy-template.yml
+    with:
+      environment: 'development'
+      app: 'api'
+    secrets:
+      AWS_ACCESS_KEY_ID_TG: ${{ secrets.AWS_ACCESS_KEY_ID_TG }}
+      AWS_SECRET_ACCESS_KEY_TG: ${{ secrets.AWS_SECRET_ACCESS_KEY_TG }}          
+      VAULT_TOKEN:  ${{ secrets.VAULT_TOKEN }}
+      VAULT_ADDR:  ${{ secrets.VAULT_ADDR }}
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID}}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+      EKS_ENDPOINT: ${{ secrets.EKS_ENDPOINT }}
+      EKS_SA_SECRET: ${{ secrets.EKS_SA_SECRET }}
+
+  cli:
+    uses: ./.github/workflows/build-push-deploy-template.yml
+    with:
+      environment: 'development'
+      app: 'cli'
+    secrets:
+      AWS_ACCESS_KEY_ID_TG: ${{ secrets.AWS_ACCESS_KEY_ID_TG }}
+      AWS_SECRET_ACCESS_KEY_TG: ${{ secrets.AWS_SECRET_ACCESS_KEY_TG }}          
+      VAULT_TOKEN:  ${{ secrets.VAULT_TOKEN }}
+      VAULT_ADDR:  ${{ secrets.VAULT_ADDR }}
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID}}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+      EKS_ENDPOINT: ${{ secrets.EKS_ENDPOINT }}
+      EKS_SA_SECRET: ${{ secrets.EKS_SA_SECRET }}
+
+  cron:
+    uses: ./.github/workflows/build-push-deploy-template.yml
+    with:
+      environment: 'development'
+      app: 'cron'
+    secrets:
+      AWS_ACCESS_KEY_ID_TG: ${{ secrets.AWS_ACCESS_KEY_ID_TG }}
+      AWS_SECRET_ACCESS_KEY_TG: ${{ secrets.AWS_SECRET_ACCESS_KEY_TG }}          
+      VAULT_TOKEN:  ${{ secrets.VAULT_TOKEN }}
+      VAULT_ADDR:  ${{ secrets.VAULT_ADDR }}
+      TS_OAUTH_CLIENT_ID: ${{ secrets.TS_OAUTH_CLIENT_ID}}
+      TS_OAUTH_SECRET: ${{ secrets.TS_OAUTH_SECRET }}
+      EKS_ENDPOINT: ${{ secrets.EKS_ENDPOINT }}
+      EKS_SA_SECRET: ${{ secrets.EKS_SA_SECRET }}

@@ -1,0 +1,126 @@
+name: 'Template For Docker Build, ECR Push And Helm Deploy Actions'
+
+on:
+  workflow_call:
+  
+    inputs:
+      environment:
+        type: string
+        required: true
+      app:
+        type: string
+        required: true
+
+    secrets:
+      AWS_ACCESS_KEY_ID_TG:
+        required: true
+      AWS_SECRET_ACCESS_KEY_TG:
+        required: true
+      VAULT_ADDR:
+        required: true
+      VAULT_TOKEN:
+        required: true
+      TS_OAUTH_CLIENT_ID:
+        required: true
+      TS_OAUTH_SECRET:
+        required: true
+      EKS_ENDPOINT:
+        required: true
+      EKS_SA_SECRET:
+        required: true
+
+jobs:
+
+  docker-build-and-push:
+
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    outputs:
+      docker_image: ${{ steps.docker-preparation.outputs.docker_image_name }}
+      docker_tag: ${{ steps.docker-preparation.outputs.docker_image_tag }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Outputs For Docker Images And Tags
+        id: docker-preparation
+        run: |
+          echo "docker_image_tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          echo "docker_image_name=${{ vars.ECR_REGISTRY }}${{ vars.NAMESPACE }}-${{ inputs.app }}" >> "$GITHUB_OUTPUT"                    
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TG }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TG }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login To Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build And Push CRON
+        uses: docker/build-push-action@v5
+        with:
+          file: ./docker/Dockerfile.CRON
+          push: true
+          tags: |
+            ${{ steps.docker-preparation.outputs.docker_image_name }}:${{ steps.docker-preparation.outputs.docker_image_tag }}  
+
+  eks-helm-deploy:
+
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    needs: docker-build-and-push
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Fetch secrets from Vault
+      id: vault
+      uses: hashicorp/vault-action@v2
+      with:
+        url: ${{ secrets.VAULT_ADDR }}
+        method: token
+        token: ${{ secrets.VAULT_TOKEN }}
+        secrets: |
+          kv/data/transaction-gateway-${{ inputs.app }} * | VAULTS_SECRETS_${{ inputs.app }};
+
+    - name: Create Helm Secret Files
+      run: |
+        export APP_UPPER=$(echo "${{ inputs.app }}" | tr '[:lower:]' '[:upper:]')
+        SECRET_VAR="VAULTS_SECRETS_$APP_UPPER"
+        export SECRET_DATA=$(env | sed -n "s/^${SECRET_VAR}\(.*\)=\(.*\)/\1: \2/p")
+        yq e --null-input ".secrets = {\"transaction-gateway-${{ inputs.app }}-secret\": {\"data\": strenv(SECRET_DATA)}}" \
+        > "./chart/transaction-gateway-${{ inputs.app }}/transaction-gateway-${{ inputs.app }}-secret.yaml"
+      shell: bash
+
+    - name: Setup Tailscale connection
+      uses: tailscale/github-action@v2
+      with:
+        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+        tags: ${{ vars.TS_TAGS }}
+        version: ${{ vars.TS_VERSION }}
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: ${{ vars.K8S_VERSION }}
+
+    - name: Setup Kubernetes context
+      uses: azure/k8s-set-context@v3
+      with:
+        method: service-account
+        k8s-url: ${{ secrets.EKS_ENDPOINT }}
+        k8s-secret: ${{ secrets.EKS_SA_SECRET }}
+
+    - name: Helm Upgrade
+      run: |
+        export DOCKER_IMAGE=${{ vars.ECR_REGISTRY }}${{ vars.NAMESPACE }}-${{ inputs.app }}
+        helm upgrade -i ${{ inputs.app }} ./chart/transaction-gateway-${{ inputs.app }} --timeout=5m --wait --history-max=3 \
+        -n ${{ vars.NAMESPACE }} -f ./chart/transaction-gateway-${{ inputs.app }}/transaction-gateway-${{ inputs.app }}-secret.yaml \
+        --set defaultImage=$DOCKER_IMAGE --set defaultImageTag=${{ needs.docker-build-and-push.outputs.docker_tag }}
