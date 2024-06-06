@@ -27,5 +27,3 @@ USER node
 WORKDIR /prod/backend
 COPY --chown=node:node ./docker/api-server-entrypoint.sh ./
 CMD ["./api-server-entrypoint.sh"]
-
-

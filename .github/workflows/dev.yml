@@ -6,7 +6,8 @@ name: DEV Build/Push/Deploy
 on:
   push:
     branches:
-      - dev 
+      - main 
+      - DEVOPS-6/dev
 
 jobs:
 
