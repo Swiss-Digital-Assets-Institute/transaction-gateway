@@ -87,7 +87,7 @@ jobs:
         method: token
         token: ${{ secrets.VAULT_TOKEN }}
         secrets: |
-          kv/data/transaction-gateway-${{ inputs.app }} * | VAULTS_SECRETS_${{ inputs.app }};
+          secret/data/transaction-gateway-${{ inputs.app }} * | VAULTS_SECRETS_${{ inputs.app }};
 
     - name: Create Helm Secret Files
       run: |
