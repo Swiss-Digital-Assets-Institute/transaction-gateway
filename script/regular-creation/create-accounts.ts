@@ -1,6 +1,7 @@
+import path from 'path';
 import { AccountCreateTransaction, AccountId, Client, Hbar, PrivateKey } from '@hashgraph/sdk';
 import { config } from 'dotenv';
-config();
+config({ path: path.resolve(__dirname, '.env') });
 
 const myAccountId = AccountId.fromString(process.env.ACCOUNT_ID);
 const myPrivateKey = PrivateKey.fromString(process.env.PRIVATE_KEY);
